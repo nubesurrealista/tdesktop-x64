@@ -1,4 +1,6 @@
-﻿# 64Gram – Based on [Telegram Desktop](https://github.com/telegramdesktop/tdesktop)
+Personal use
+
+# 64Gram – Based on [Telegram Desktop](https://github.com/telegramdesktop/tdesktop)
 
 The source code is published under GPLv3 with OpenSSL exception, the license is available [here][license].
 
