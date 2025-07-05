@@ -1,4 +1,4 @@
-name: Linux.
+name: Linux
 
 on:
   push:
@@ -39,6 +39,7 @@ on:
       - 'Telegram/Telegram/**'
       - 'Telegram/configure.bat'
       - 'Telegram/Telegram.plist'
+  workflow_dispatch:
 
 jobs:
 
