@@ -236,7 +236,10 @@ def filterByPlatform(commands):
         m = re.match(r'(!?)([a-z0-9_]+):', command)
         if m and m.group(2) != 'depends' and m.group(2) != 'version':
             scopes = m.group(2).split('_')
-            scopes.append("release")
+
+            if "release" not in scopes:
+                scopes.append("release")
+
             inscope = 'common' in scopes
             if win and 'win' in scopes:
                 inscope = True
@@ -540,6 +543,7 @@ stage(
     """
 win:
     git clone https://github.com/desktop-app/lzma.git
+    cd lzma\\C\\Util\\LzmaLib
 release:
     msbuild -m LzmaLib.sln /property:Configuration=Release /property:Platform="$X8664"
 """,
@@ -711,7 +715,6 @@ release:
 !win:
     echo "Skipped debug build"
 release:
-    cd ..
     mkdir Release
     cd Release
     cmake -G Ninja ../.. \\
@@ -1472,6 +1475,9 @@ winarm:
 win:
 depends:python/Scripts/activate.bat
     %THIRDPARTY_DIR%\\python\\Scripts\\activate.bat
+    cd src\\client\\windows
+    gyp --no-circular-check breakpad_client.gyp --format=ninja
+    cd ..\\..
 release:
     ninja -C out/Release%FolderPostfix% common crash_generation_client exception_handler
     cd tools\\windows\\dump_syms
@@ -1554,7 +1560,6 @@ win:
     mkdir out
     cd out
 release:
-    cd ..
     mkdir Release
     cd Release
     cmake -G Ninja ^
