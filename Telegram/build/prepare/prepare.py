@@ -1797,7 +1797,6 @@ win:
     mkdir out
     cd out
 release:
-    cd ..
     mkdir Release
     cd Release
     cmake -G Ninja \
@@ -1820,22 +1819,6 @@ mac:
     FFMPEG_PATH=$USED_PREFIX/include
     mkdir out
     cd out
-    mkdir Debug.x86_64
-    cd Debug.x86_64
-    cmake -G Ninja \
-        -DCMAKE_BUILD_TYPE=Debug \
-        -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=$MACOSX_DEPLOYMENT_TARGET \
-        -DCMAKE_OSX_ARCHITECTURES=x86_64 \
-        -DTG_OWT_BUILD_AUDIO_BACKENDS=OFF \
-        -DTG_OWT_SPECIAL_TARGET=$SPECIAL_TARGET \
-        -DTG_OWT_LIBJPEG_INCLUDE_PATH=$MOZJPEG_PATH \
-        -DTG_OWT_OPENSSL_INCLUDE_PATH=$LIBS_DIR/openssl3/include \
-        -DTG_OWT_OPUS_INCLUDE_PATH=$OPUS_PATH \
-        -DTG_OWT_LIBVPX_INCLUDE_PATH=$LIBVPX_PATH \
-        -DTG_OWT_OPENH264_INCLUDE_PATH=$OPENH264_PATH \
-        -DTG_OWT_FFMPEG_INCLUDE_PATH=$FFMPEG_PATH ../..
-    ninja
-    cd ..
 release:
     mkdir Release.x86_64
     cd Release.x86_64
@@ -1949,7 +1932,6 @@ win:
     mkdir out
     cd out
 release:
-    cd ..
     mkdir Release
     cd Release
     cmake -A %WIN32X64% ^
