@@ -1953,6 +1953,7 @@ if (MSVC)
     target_link_libraries(Telegram
     PRIVATE
         delayimp
+        runtimeobject
     )
     target_link_options(Telegram
     PRIVATE

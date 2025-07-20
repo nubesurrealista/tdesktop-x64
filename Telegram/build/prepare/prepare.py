@@ -1535,33 +1535,6 @@ release:
 """)
 
 if qt < '6':
-    if win:
-        stage('tg_angle', """
-win:
-    git clone https://github.com/desktop-app/tg_angle.git
-    cd tg_angle
-    git checkout e3f59e8d0c
-    mkdir out
-    cd out
-    mkdir Debug
-    cd Debug
-    cmake -G Ninja ^
-        -DCMAKE_BUILD_TYPE=Debug ^
-        -DTG_ANGLE_SPECIAL_TARGET=%SPECIAL_TARGET% ^
-        -DTG_ANGLE_ZLIB_INCLUDE_PATH=%LIBS_DIR%/zlib ../..
-    ninja
-release:
-    cd ..
-    mkdir Release
-    cd Release
-    cmake -G Ninja ^
-        -DCMAKE_BUILD_TYPE=Release ^
-        -DTG_ANGLE_SPECIAL_TARGET=%SPECIAL_TARGET% ^
-        -DTG_ANGLE_ZLIB_INCLUDE_PATH=%LIBS_DIR%/zlib ../..
-    ninja
-    cd ..\\..\\..
-""")
-
     stage('qt_' + qt, """
     git clone -b v$QT-lts-lgpl https://github.com/qt/qt5.git qt_$QT
     cd qt_$QT
@@ -1585,8 +1558,6 @@ release:
     SET CONFIGURATIONS=-debug-and-release
 win:
     """ + removeDir('"%LIBS_DIR%\\Qt-' + qt + '"') + """
-    SET ANGLE_DIR=%LIBS_DIR%\\tg_angle
-    SET ANGLE_LIBS_DIR=%ANGLE_DIR%\\out
     SET MOZJPEG_DIR=%LIBS_DIR%\\mozjpeg
     SET OPENSSL_DIR=%LIBS_DIR%\\openssl3
     SET OPENSSL_LIBS_DIR=%OPENSSL_DIR%\\out
@@ -1600,14 +1571,12 @@ win:
         -static ^
         -static-runtime ^
         -opengl es2 ^
-        -I "%ANGLE_DIR%\\include" ^
         -D "KHRONOS_STATIC=" ^
-        -D "DESKTOP_APP_QT_STATIC_ANGLE=" ^
-        QMAKE_LIBS_OPENGL_ES2_DEBUG="%ANGLE_LIBS_DIR%\\Debug\\tg_angle.lib %ZLIB_LIBS_DIR%\\Debug\\zlibstaticd.lib d3d9.lib dxgi.lib dxguid.lib" ^
-        QMAKE_LIBS_OPENGL_ES2_RELEASE="%ANGLE_LIBS_DIR%\\Release\\tg_angle.lib %ZLIB_LIBS_DIR%\\Release\\zlibstatic.lib d3d9.lib dxgi.lib dxguid.lib" ^
+        QMAKE_LIBS_OPENGL_ES2_DEBUG="%ZLIB_LIBS_DIR%\\Debug\\zlibstaticd.lib d3d9.lib dxgi.lib dxguid.lib" ^
+        QMAKE_LIBS_OPENGL_ES2_RELEASE="%ZLIB_LIBS_DIR%\\Release\\zlibstatic.lib d3d9.lib dxgi.lib dxguid.lib" ^
         -egl ^
-        QMAKE_LIBS_EGL_DEBUG="%ANGLE_LIBS_DIR%\\Debug\\tg_angle.lib %ZLIB_LIBS_DIR%\\Debug\\zlibstaticd.lib d3d9.lib dxgi.lib dxguid.lib Gdi32.lib User32.lib" ^
-        QMAKE_LIBS_EGL_RELEASE="%ANGLE_LIBS_DIR%\\Release\\tg_angle.lib %ZLIB_LIBS_DIR%\\Release\\zlibstatic.lib d3d9.lib dxgi.lib dxguid.lib Gdi32.lib User32.lib" ^
+        QMAKE_LIBS_EGL_DEBUG="%ZLIB_LIBS_DIR%\\Debug\\zlibstaticd.lib d3d9.lib dxgi.lib dxguid.lib Gdi32.lib User32.lib" ^
+        QMAKE_LIBS_EGL_RELEASE="%ZLIB_LIBS_DIR%\\Release\\zlibstatic.lib d3d9.lib dxgi.lib dxguid.lib Gdi32.lib User32.lib" ^
         -openssl-linked ^
         -I "%OPENSSL_DIR%\\include" ^
         OPENSSL_LIBS_DEBUG="%OPENSSL_LIBS_DIR%.dbg\\libssl.lib %OPENSSL_LIBS_DIR%.dbg\\libcrypto.lib Ws2_32.lib Gdi32.lib Advapi32.lib Crypt32.lib User32.lib" ^
