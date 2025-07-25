@@ -157,7 +157,7 @@ jobs:
 
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
 
-          API="-D TDESKTOP_API_TEST=ON"
+          API="-D TDESKTOP_API_TEST=OFF"
           if [ $GITHUB_REF == 'refs/heads/nightly' ] || [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "Use the open credentials."
             API="-D TDESKTOP_API_ID=611335 -D TDESKTOP_API_HASH=d524b414d21f4d37f08684c1df41ac9c"
