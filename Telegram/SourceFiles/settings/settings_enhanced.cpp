@@ -629,6 +629,20 @@ namespace Settings {
 			SetEnhancedValue("hide_stories", enabled);
 			EnhancedSettings::Write();
 		}, container->lifetime());
+		
+		AddButtonWithIcon(
+				container,
+				tr::lng_settings_hide_star_ratings(),
+				st::settingsButtonNoIcon
+		)->toggleOn(
+				rpl::single(GetEnhancedBool("hide_star_ratings"))
+		)->toggledValue(
+		) | rpl::filter([](bool enabled) {
+			return (enabled != GetEnhancedBool("hide_star_ratings"));
+		}) | rpl::start_with_next([=](bool enabled) {
+			SetEnhancedValue("hide_star_ratings", enabled);
+			EnhancedSettings::Write();
+		}, container->lifetime());
 
 		auto value = rpl::single(
 				RecentDisplayLimitController::Label(GetEnhancedInt("recent_display_limit"))
