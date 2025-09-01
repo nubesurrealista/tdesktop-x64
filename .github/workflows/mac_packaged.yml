@@ -111,6 +111,8 @@ jobs:
           git clone --depth=1 --recursive --shallow-submodules $GIT/desktop-app/tg_owt.git
           cd tg_owt
 
+          export MACOSX_DEPLOYMENT_TARGET=14.0
+
           cmake -Bbuild -GNinja . \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_C_FLAGS_RELEASE="-O3" \
