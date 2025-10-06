@@ -749,7 +749,9 @@ win:
 """)
 
 # Somehow in x86 Debug build dav1d crashes on AV1 10bpc videos.
-stage('dav1d', """
+stage(
+    "dav1d",
+    """
     git clone -b 1.5.1 https://code.videolan.org/videolan/dav1d.git
     cd dav1d
 win32:
@@ -793,6 +795,9 @@ win:
 winarm:
     SET "PATH=%PATH_BACKUP_%"
 mac:
+    git switch master
+    git pull
+
     buildOneArch() {
         arch=$1
         folder=`pwd`/$2
@@ -815,7 +820,8 @@ mac:
     buildOneArch x86_64 build
 
     lipo -create build.arm64/libdav1d.a build/libdav1d.a -output ${USED_PREFIX}/lib/libdav1d.a
-""")
+""",
+)
 
 stage('openh264', """
     git clone -b v2.6.0 https://github.com/cisco/openh264.git
