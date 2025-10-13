@@ -819,6 +819,10 @@ void PeerShortInfoBox::prepareRows() {
 		birthdayLabel(),
 		birthdayValue() | Ui::Text::ToWithEntities(),
 		tr::lng_mediaview_copy(tr::now));
+	addInfoLine(
+		tr::lng_info_notes_label(),
+		noteValue(),
+		_st.labeled);
 }
 
 void PeerShortInfoBox::resizeEvent(QResizeEvent *e) {
@@ -929,5 +933,11 @@ rpl::producer<TextWithEntities> PeerShortInfoBox::aboutValue() const {
 rpl::producer<QString> PeerShortInfoBox::userIdValue() const {
 	return _fields.value() | rpl::map([](const PeerShortInfoFields &fields) {
 		return fields.user_id;
+	}) | rpl::distinct_until_changed();
+}
+
+rpl::producer<TextWithEntities> PeerShortInfoBox::noteValue() const {
+	return _fields.value() | rpl::map([](const PeerShortInfoFields &fields) {
+		return fields.note;
 	}) | rpl::distinct_until_changed();
 }

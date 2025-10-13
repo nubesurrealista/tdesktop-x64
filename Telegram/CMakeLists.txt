@@ -365,6 +365,14 @@ PRIVATE
     calls/group/calls_group_members_row.h
     calls/group/calls_group_menu.cpp
     calls/group/calls_group_menu.h
+    calls/group/calls_group_message_encryption.cpp
+    calls/group/calls_group_message_encryption.h
+    calls/group/calls_group_message_field.cpp
+    calls/group/calls_group_message_field.h
+    calls/group/calls_group_messages.cpp
+    calls/group/calls_group_messages.h
+    calls/group/calls_group_messages_ui.cpp
+    calls/group/calls_group_messages_ui.h
     calls/group/calls_group_panel.cpp
     calls/group/calls_group_panel.h
     calls/group/calls_group_rtmp.cpp
@@ -779,6 +787,8 @@ PRIVATE
     history/view/controls/history_view_voice_record_bar.h
     history/view/controls/history_view_webpage_processor.cpp
     history/view/controls/history_view_webpage_processor.h
+    history/view/media/history_view_birthday_suggestion.cpp
+    history/view/media/history_view_birthday_suggestion.h
     history/view/media/history_view_call.cpp
     history/view/media/history_view_call.h
     history/view/media/history_view_contact.cpp
@@ -912,6 +922,8 @@ PRIVATE
     history/view/history_view_schedule_box.h
     history/view/history_view_scheduled_section.cpp
     history/view/history_view_scheduled_section.h
+    history/view/history_view_self_forwards_tagger.cpp
+    history/view/history_view_self_forwards_tagger.h
     history/view/history_view_send_action.cpp
     history/view/history_view_send_action.h
     history/view/history_view_service_message.cpp
@@ -956,6 +968,8 @@ PRIVATE
     history/history_inner_widget.h
     history/history_location_manager.cpp
     history/history_location_manager.h
+    history/history_streamed_drafts.cpp
+    history/history_streamed_drafts.h
     history/history_translation.cpp
     history/history_translation.h
     history/history_unread_things.cpp
@@ -1048,8 +1062,6 @@ PRIVATE
     info/profile/info_profile_members_controllers.h
     info/profile/info_profile_phone_menu.cpp
     info/profile/info_profile_phone_menu.h
-    info/profile/info_profile_text.cpp
-    info/profile/info_profile_text.h
     info/profile/info_profile_values.cpp
     info/profile/info_profile_values.h
     info/profile/info_profile_widget.cpp

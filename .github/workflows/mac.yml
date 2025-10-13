@@ -121,7 +121,7 @@ jobs:
           -D CMAKE_COMPILE_WARNING_AS_ERROR=OFF \
           -D CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
           -D TDESKTOP_API_TEST=OFF \
-          -D DESKTOP_APP_DISABLE_AUTOUPDATE=OFF \
+          -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON \
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF \
           -D TDESKTOP_API_ID=${{ secrets.TELEGRAM_API_ID }} \
           -D TDESKTOP_API_HASH=${{ secrets.TELEGRAM_API_HASH }} \
@@ -153,7 +153,6 @@ jobs:
           cd $REPO_NAME/out/Release
           mkdir artifact
           mv Telegram.app artifact/
-          mv Updater artifact/
       - uses: actions/upload-artifact@v4
         if: env.UPLOAD_ARTIFACT == 'true'
         name: Upload artifact.
