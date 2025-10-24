@@ -87,6 +87,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/qthelp_regex.h"
 #include "base/qthelp_url.h"
 #include "boxes/premium_limits_box.h"
+#include "ui/accessible/ui_accessible_factory.h"
 #include "ui/boxes/confirm_box.h"
 #include "ui/controls/location_picker.h"
 #include "styles/style_window.h"
@@ -291,6 +292,7 @@ void Application::run() {
 	QCoreApplication::instance()->installTranslator(_translator.get());
 
 	style::StartManager(cScale());
+	Ui::Accessible::Init();
 	Ui::InitTextOptions();
 	Ui::StartCachedCorners();
 	Ui::Emoji::Init();
@@ -696,33 +698,26 @@ bool Application::eventFilter(QObject *object, QEvent *e) {
 
 	case QEvent::FileOpen: {
 		if (object == QCoreApplication::instance()) {
-			const auto event = static_cast<QFileOpenEvent*>(e);
-			const auto flushQueued = [=] {
-				if (_filesToOpen.isEmpty()) {
-					InvokeQueued(this, [=] {
-						cSetSendPaths(_filesToOpen);
-						_filesToOpen.clear();
-						checkSendPaths();
-					});
-				}
-			};
-			if (const auto file = event->file(); !file.isEmpty()) {
-				flushQueued();
-				_filesToOpen.append(file);
-			} else if (event->url().scheme() == u"tg"_q
-				|| event->url().scheme() == u"tonsite"_q) {
-				const auto url = QString::fromUtf8(
-					event->url().toEncoded().trimmed());
-				cSetStartUrl(url.mid(0, 8192));
-				checkStartUrl();
-				if (_lastActivePrimaryWindow
-					&& StartUrlRequiresActivate(url)) {
-					_lastActivePrimaryWindow->activate();
-				}
-			} else if (event->url().scheme() == u"interpret"_q) {
-				flushQueued();
-				_filesToOpen.append(event->url().toString());
+			if (_urlsToOpen.isEmpty()) {
+				InvokeQueued(this, [=] {
+					const auto activateRequired = ranges::any_of(
+						ranges::views::all(
+							_urlsToOpen
+						 ) | ranges::views::transform([](const QUrl &url) {
+							return url.toString();
+						}),
+						StartUrlRequiresActivate);
+					cRefStartUrls() << base::take(_urlsToOpen);
+					checkStartUrls();
+					if (_lastActivePrimaryWindow && activateRequired) {
+						_lastActivePrimaryWindow->activate();
+					}
+				});
 			}
+			const auto event = static_cast<QFileOpenEvent*>(e);
+			_urlsToOpen << event->url().toString(QUrl::FullyEncoded).mid(
+				0,
+				8192);
 		}
 	} break;
 
@@ -1094,28 +1089,24 @@ bool Application::canApplyLangPackWithoutRestart() const {
 	return true;
 }
 
-void Application::checkSendPaths() {
-	if (!cSendPaths().isEmpty()
+void Application::checkStartUrls() {
+	if (!Core::App().passcodeLocked()) {
+		cRefStartUrls() = ranges::views::all(
+			cRefStartUrls()
+		) | ranges::views::filter([&](const QUrl &url) {
+			if (url.scheme() == u"tonsite"_q) {
+				iv().showTonSite(url.toString(), {});
+				return false;
+			} else if (_lastActivePrimaryWindow) {
+				return !openLocalUrl(url.toString(), {});
+			}
+			return true;
+		}) | ranges::to<QList<QUrl>>;
+	}
+	if (!cRefStartUrls().isEmpty()
 		&& _lastActivePrimaryWindow
 		&& !_lastActivePrimaryWindow->locked()) {
 		_lastActivePrimaryWindow->widget()->sendPaths();
-	}
-}
-
-void Application::checkStartUrl() {
-	if (!cStartUrl().isEmpty()) {
-		const auto url = cStartUrl();
-		if (!Core::App().passcodeLocked()) {
-			if (url.startsWith("tonsite://", Qt::CaseInsensitive)) {
-				cSetStartUrl(QString());
-				iv().showTonSite(url, {});
-			} else if (_lastActivePrimaryWindow) {
-				cSetStartUrl(QString());
-				if (!openLocalUrl(url, {})) {
-					cSetStartUrl(url);
-				}
-			}
-		}
 	}
 }
 

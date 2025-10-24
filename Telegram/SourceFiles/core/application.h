@@ -275,8 +275,7 @@ public:
 	}
 
 	// Internal links.
-	void checkStartUrl();
-	void checkSendPaths();
+	void checkStartUrls();
 	bool openLocalUrl(const QString &url, QVariant context);
 	bool openInternalUrl(const QString &url, QVariant context);
 	[[nodiscard]] QString changelogLink() const;
@@ -455,7 +454,7 @@ private:
 	crl::time _shouldLockAt = 0;
 	base::Timer _autoLockTimer;
 
-	QStringList _filesToOpen;
+	QList<QUrl> _urlsToOpen;
 
 	std::optional<base::Timer> _saveSettingsTimer;
 
