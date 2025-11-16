@@ -1692,34 +1692,6 @@ object_ptr<Ui::RpWidget> DetailsFiller::setupInfo() {
 				QString()
 			).text->setLinksTrusted();
 		}
-
-		auto idText = TextWithEntities();
-		auto id = QString();
-
-		if (_peer->isChat()) {
-			id = QString("-%1").arg(_peer->id.to<ChatId>().bare);
-			idText = Ui::Text::Link(QString("-%L1").arg(_peer->id.to<ChatId>().bare).replace(",", " "));
-		} else if (_peer->isMegagroup() || _peer->isChannel()) {
-			id = QString("-100%1").arg(_peer->id.to<ChannelId>().bare);
-			idText = Ui::Text::Link(QString("-1 00%L1").arg(_peer->id.to<ChannelId>().bare).replace(",", " "));
-		} else {
-			id = QString("%1").arg(_peer->id.to<UserId>().bare);
-			idText = Ui::Text::Link(QString("%L1").arg(_peer->id.to<UserId>().bare).replace(",", " "));
-		}
-
-		const auto idLine = addInfoOneLine(
-			StringValue("ID"),
-			rpl::single(idText),
-			QString(),
-			st::infoProfileLabeledUsernamePadding);
-		const auto idCallback = IDLinkCallback(
-			_peer,
-			controller,
-			id);
-		idLine.text->overrideLinkClickHandler(idCallback);
-		idLine.subtext->overrideLinkClickHandler(idCallback);
-		idLine.text->setContextMenuHook(lnkHook);
-		idLine.subtext->setContextMenuHook(lnkHook);
 	} else {
 		const auto topicRootId = _topic ? _topic->rootId() : 0;
 		const auto addToLink = topicRootId
@@ -1802,6 +1774,35 @@ object_ptr<Ui::RpWidget> DetailsFiller::setupInfo() {
 			addTranslateToMenu(about.text, AboutWithAdvancedValue(_peer));
 		}
 	}
+
+	auto idText = TextWithEntities();
+	auto id = QString();
+
+	if (_peer->isChat()) {
+		id = QString("-%1").arg(_peer->id.to<ChatId>().bare);
+		idText = Ui::Text::Link(QString("-%L1").arg(_peer->id.to<ChatId>().bare).replace(",", " "));
+	} else if (_peer->isMegagroup() || _peer->isChannel()) {
+		id = QString("-100%1").arg(_peer->id.to<ChannelId>().bare);
+		idText = Ui::Text::Link(QString("-1 00%L1").arg(_peer->id.to<ChannelId>().bare).replace(",", " "));
+	} else {
+		id = QString("%1").arg(_peer->id.to<UserId>().bare);
+		idText = Ui::Text::Link(QString("%L1").arg(_peer->id.to<UserId>().bare).replace(",", " "));
+	}
+
+	const auto idLine = addInfoOneLine(
+		StringValue("ID"),
+		rpl::single(idText),
+		QString(),
+		st::infoProfileLabeledUsernamePadding);
+	const auto idCallback = IDLinkCallback(
+		_peer,
+		controller,
+		id);
+	idLine.text->overrideLinkClickHandler(idCallback);
+	idLine.subtext->overrideLinkClickHandler(idCallback);
+	idLine.text->setContextMenuHook(lnkHook);
+	idLine.subtext->setContextMenuHook(lnkHook);
+
 	wrap->toggleOn(tracker.atLeastOneShownValue());
 	wrap->finishAnimating();
 
