@@ -3,41 +3,40 @@ name: MacOS Packaged.
 on:
   push:
     paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - 'changelog.txt'
-      - 'LEGAL'
-      - 'LICENSE'
-      - '.github/**'
-      - '!.github/workflows/mac_packaged.yml'
-      - 'lib/xdg/**'
-      - 'snap/**'
-      - 'Telegram/build/**'
-      - 'Telegram/Resources/uwp/**'
-      - 'Telegram/Resources/winrc/**'
-      - 'Telegram/SourceFiles/platform/win/**'
-      - 'Telegram/SourceFiles/platform/linux/**'
-      - 'Telegram/configure.bat'
+      - "docs/**"
+      - "**.md"
+      - "changelog.txt"
+      - "LEGAL"
+      - "LICENSE"
+      - ".github/**"
+      - "!.github/workflows/mac_packaged.yml"
+      - "lib/xdg/**"
+      - "snap/**"
+      - "Telegram/build/**"
+      - "Telegram/Resources/uwp/**"
+      - "Telegram/Resources/winrc/**"
+      - "Telegram/SourceFiles/platform/win/**"
+      - "Telegram/SourceFiles/platform/linux/**"
+      - "Telegram/configure.bat"
   pull_request:
     paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - 'changelog.txt'
-      - 'LEGAL'
-      - 'LICENSE'
-      - '.github/**'
-      - '!.github/workflows/mac_packaged.yml'
-      - 'lib/xdg/**'
-      - 'snap/**'
-      - 'Telegram/build/**'
-      - 'Telegram/Resources/uwp/**'
-      - 'Telegram/Resources/winrc/**'
-      - 'Telegram/SourceFiles/platform/win/**'
-      - 'Telegram/SourceFiles/platform/linux/**'
-      - 'Telegram/configure.bat'
+      - "docs/**"
+      - "**.md"
+      - "changelog.txt"
+      - "LEGAL"
+      - "LICENSE"
+      - ".github/**"
+      - "!.github/workflows/mac_packaged.yml"
+      - "lib/xdg/**"
+      - "snap/**"
+      - "Telegram/build/**"
+      - "Telegram/Resources/uwp/**"
+      - "Telegram/Resources/winrc/**"
+      - "Telegram/SourceFiles/platform/win/**"
+      - "Telegram/SourceFiles/platform/linux/**"
+      - "Telegram/configure.bat"
 
 jobs:
-
   macos:
     name: MacOS
     runs-on: macos-latest
@@ -113,9 +112,9 @@ jobs:
           cd tg_owt
 
           cmake -Bbuild -GNinja . \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_C_FLAGS_DEBUG="" \
-          -DCMAKE_CXX_FLAGS_DEBUG="" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_FLAGS_RELEASE="-O3" \
+          -DCMAKE_CXX_FLAGS_RELEASE="-O3" \
           -DCMAKE_DISABLE_FIND_PACKAGE_absl=ON
 
           cmake --build build --parallel
@@ -187,9 +186,10 @@ jobs:
           cd $REPO_NAME/build
           mkdir artifact
           mv Telegram.dmg artifact/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: env.UPLOAD_ARTIFACT == 'true'
         name: Upload artifact.
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.REPO_NAME }}/build/artifact/
+
