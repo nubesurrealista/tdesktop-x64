@@ -456,7 +456,7 @@ void BottomInfo::layoutDateText() {
 		? langDateTime(_data.date)
 		: QLocale().toString(_data.date.time(), GetEnhancedBool("show_seconds") 
 			? QLocale::system().timeFormat(QLocale::LongFormat).remove("t") 
-			: QLocale::system().timeFormat(QLocale::ShortFormat)));
+			: QLocale::system().timeFormat(QLocale::ShortFormat))) + _data.msgId;
 	const auto afterAuthor = prefix + date;
 	const auto afterAuthorWidth = st::msgDateFont->width(afterAuthor);
 	const auto authorWidth = st::msgDateFont->width(author);
