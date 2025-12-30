@@ -23,7 +23,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-pip openssl
           pip3 install --break-system-packages git+https://gitlab.postmarketos.org/postmarketOS/pmbootstrap.git
-          pmbootstrap init --arch x86_64 --distro alpine --mirror-alpine http://dl-cdn.alpinelinux.org/alpine/ --work /home/runner/pmbootstrap
+          
+          mkdir -p /home/runner/pmbootstrap
+          pmbootstrap init --path /home/runner/pmbootstrap --mirror-alpine http://dl-cdn.alpinelinux.org/alpine/ --as-root <<EOF
+          edge
+          alpine
+          x86_64
+          y
+          EOF
 
       - name: Prepare Aport with Custom Flags
         env:
@@ -40,7 +47,6 @@ jobs:
           sed -i "s|pkgname=telegram-desktop|pkgname=telegram-custom|g" $APORT_DIR/APKBUILD
           sed -i "s|source=.*|source=\"tdesktop-fork.tar.gz\"|g" $APORT_DIR/APKBUILD
           
-          # Inyección de tus flags personalizadas y API Keys en el APKBUILD
           sed -i "/-DCMAKE_BUILD_TYPE=Release/a \
             -DTDESKTOP_API_ID=$API_ID \
             -DTDESKTOP_API_HASH=$API_HASH \
