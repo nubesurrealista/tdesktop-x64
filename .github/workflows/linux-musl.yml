@@ -86,7 +86,7 @@ jobs:
             -DTDESKTOP_API_HASH=${{ secrets.TELEGRAM_API_HASH }} \
             -DTDESKTOP_API_TEST=OFF \
             -DDESKTOP_APP_DISABLE_AUTOUPDATE=ON \
-            -DDESKTOP_APP_DISABLE_CRASH_REPORTS=OFF \
+            -DDESKTOP_APP_DISABLE_CRASH_REPORTS=ON \
             -DDESKTOP_APP_USE_PACKAGED=ON \
             -Dtde2e_DIR="$PWD/td/install/lib/cmake/tde2e"
           
