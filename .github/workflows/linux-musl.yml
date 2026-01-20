@@ -77,12 +77,19 @@ jobs:
 
       - name: Package artifact
         run: |
-          strip --strip-all out/Telegram
+          BINARY_PATH=$(find out -maxdepth 3 -type f -name "Telegram" | head -n 1)
+          
+          if [ -z "$BINARY_PATH" ]; then
+            exit 1
+          fi
+          
+          strip --strip-all "$BINARY_PATH"
           mkdir -p artifact
-          mv out/Telegram artifact/
+          mv "$BINARY_PATH" artifact/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Telegram-Desktop
           path: artifact/
+          
