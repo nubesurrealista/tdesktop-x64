@@ -641,15 +641,15 @@ win:
     cmake -B out . ^
         -DCMAKE_INSTALL_PREFIX=%LIBS_DIR%/local ^
         -DOPUS_STATIC_RUNTIME=ON
-    cmake --build out --config Release --parallel
+    cmake --build out --config Release
     cmake --install out --config Release
 mac:
     CFLAGS="$UNGUARDED" CPPFLAGS="$UNGUARDED" cmake -B build . \\
         -D CMAKE_OSX_ARCHITECTURES="x86_64;arm64" \\
         -D CMAKE_INSTALL_PREFIX:STRING=$USED_PREFIX \\
-        -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \\
-        $MAKE_THREADS_CNT
-    cmake --install build
+        -D CMAKE_POLICY_VERSION_MINIMUM=3.5
+    cmake --build build --config Release
+    cmake --install build --config Release
 """)
 
 stage('rnnoise', """
@@ -659,9 +659,9 @@ stage('rnnoise', """
     mkdir out
     cd out
 win:
-    cmake -A %WIN32X64% .. -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>"
+    cmake .. -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" -DCMAKE_BUILD_TYPE=Release
 release:
-    cmake --build . --config Release --parallel
+    cmake --build . --config Release
 !win:
     echo "Debug build is turned off"
 release:
@@ -882,7 +882,7 @@ mac:
         -D ENABLE_DECODER=ON \\
         -D ENABLE_ENCODER=OFF \\
         -D CMAKE_POLICY_VERSION_MINIMUM=3.5
-    cmake --build . --config MinSizeRel $MAKE_THREADS_CNT
+    cmake --build . --config MinSizeRel --parallel
     cmake --install . --config MinSizeRel
 """)
 
