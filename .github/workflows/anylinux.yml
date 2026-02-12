@@ -19,10 +19,10 @@ jobs:
     steps:
       - name: Install Base System Dependencies
         run: |
-          sed -i -E 's@[[:space:]]*usr/share/locale/*@@g; s@[[:space:]]+@ @g; s@[[:space:]]+$@@' /etc/pacman.conf
+          sed -i 's/^NoExtract *=.*locale.*//g' /etc/pacman.conf
           
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb glibc gcc enchant2 hunspell hunspell-es_es qt6-5compat
+          pacman -Sy --noconfirm
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc enchant2 hunspell hunspell-es_es qt6-5compat
           
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
