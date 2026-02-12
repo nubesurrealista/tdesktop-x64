@@ -9,13 +9,19 @@ on:
       - completed
 jobs:
   appimage:
-    name: Package 64Gram AnyLinux
+    name: Package 64Gram AnyLinux (Arch)
     runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --privileged
     if: ${{ github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Install Base System Dependencies
+        run: >
+          pacman -Syu --noconfirm
+
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils
       - name: Download Latest Binary Artifact
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -43,9 +49,9 @@ jobs:
           chmod +x ./get-debloated-pkgs
 
 
-          sudo curl -fsSL "https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-x86_64" -o /usr/local/bin/sharun
+          curl -fsSL "https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-x86_64" -o /usr/local/bin/sharun
 
-          sudo chmod +x /usr/local/bin/sharun
+          chmod +x /usr/local/bin/sharun
 
 
           ./get-debloated-pkgs --add-common --prefer-nano
