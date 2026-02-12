@@ -23,7 +23,7 @@ jobs:
           sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
           
           pacman -Syu --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb glibc gcc
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb glibc gcc enchant2 hunspell hunspell-es_es qt6-5compat
           
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
@@ -88,7 +88,7 @@ jobs:
           export DESKTOP="build_dir/64Gram.desktop"
           export STRIP=1
 
-          xvfb-run ./quick-sharun ./build_dir/Telegram
+          xvfb-run ./quick-sharun ./build_dir/Telegram /usr/lib/libenchant-2.so* /usr/lib/libhunspell-1.7.so*
           ./quick-sharun --make-appimage
 
       - name: Upload AppImage Artifact
