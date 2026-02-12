@@ -21,7 +21,7 @@ jobs:
         run: >
           pacman -Syu --noconfirm
 
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb
       - name: Download Latest Binary Artifact
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -88,16 +88,26 @@ jobs:
       - name: Build AppImage
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
+        run: >
           export ARCH=$(uname -m)
+
           export VERSION=$(date +%Y%m%d)
+
           export OUTPATH="./dist"
+
+          export UPINFO="gh-releases-zsync|nubesurrealista|tdesktop-x64|latest|*x86_64.AppImage.zsync"
+
           export ADD_HOOKS="vulkan-check.src.hook"
+
           export ICON="build_dir/icon.svg"
+
           export DESKTOP="build_dir/64Gram.desktop"
+
           export STRIP=1
 
-          ./quick-sharun ./build_dir/Telegram
+
+          xvfb-run ./quick-sharun ./build_dir/Telegram
+
           ./quick-sharun --make-appimage
       - name: Upload AppImage Artifact
         uses: actions/upload-artifact@v4
