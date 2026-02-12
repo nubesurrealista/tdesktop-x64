@@ -958,13 +958,12 @@ void OverlayWidget::initNormalGeometry() {
 	const auto saved = Core::App().settings().mediaViewPosition();
 	const auto adjusted = Core::AdjustToScale(saved, u"Viewer"_q);
 	const auto initial = DefaultPosition();
-	_normalGeometry = initial.rect();
-	if (const auto active = Core::App().activeWindow()) {
-		_normalGeometry = active->widget()->countInitialGeometry(
-			adjusted,
-			initial,
-			{ st::mediaviewMinWidth, st::mediaviewMinHeight });
-	}
+	_normalGeometry = Window::CountInitialGeometry(
+		_window,
+		adjusted,
+		initial,
+		{ st::mediaviewMinWidth, st::mediaviewMinHeight },
+		u"Viewer"_q);
 }
 
 void OverlayWidget::savePosition() {
@@ -1003,7 +1002,8 @@ void OverlayWidget::savePosition() {
 	realPosition = Window::PositionWithScreen(
 		realPosition,
 		_window,
-		{ st::mediaviewMinWidth, st::mediaviewMinHeight });
+		{ st::mediaviewMinWidth, st::mediaviewMinHeight },
+		u"Viewer"_q);
 	if (realPosition.w >= st::mediaviewMinWidth
 		&& realPosition.h >= st::mediaviewMinHeight
 		&& realPosition != savedPosition) {
@@ -1025,12 +1025,24 @@ void OverlayWidget::updateGeometry(bool inMove) {
 	if (_fullscreen) {
 		updateGeometryToScreen(inMove);
 	} else if (_windowed && _normalGeometryInited) {
-		DEBUG_LOG(("Viewer Pos: Setting %1, %2, %3, %4")
-			.arg(_normalGeometry.x())
-			.arg(_normalGeometry.y())
-			.arg(_normalGeometry.width())
-			.arg(_normalGeometry.height()));
-		_window->setGeometry(_normalGeometry);
+		const auto setGeometry = [=](QRect geometry) {
+			DEBUG_LOG(("Viewer Pos: Setting %1, %2, %3, %4")
+				.arg(geometry.x())
+				.arg(geometry.y())
+				.arg(geometry.width())
+				.arg(geometry.height()));
+			_window->setGeometry(geometry);
+		};
+		const auto geometry = _normalGeometry;
+		setGeometry(geometry);
+		if constexpr (Platform::IsMac()) {
+			// Either macOS or Qt immediately overwrite the geometry for
+			// some time (perhaps until the window is really on screen),
+			// try to set again later in event loop
+			InvokeQueued(_window, [=] {
+				setGeometry(geometry);
+			});
+		}
 	}
 	if constexpr (!Platform::IsMac()) {
 		if (_fullscreen) {
@@ -1502,13 +1514,26 @@ void OverlayWidget::updateControls() {
 			height() - st::mediaviewTextTop,
 			qMin(_fromNameLabel.maxWidth(), width() / 3),
 			st::mediaviewFont->height);
+		const auto separatorWidth = st::mediaviewFont->width(Ui::kQBullet);
+		_separatorNav = QRect(
+			st::mediaviewTextLeft
+				+ _nameNav.width()
+				+ st::mediaviewTextSkipHalf,
+			height() - st::mediaviewTextTop,
+			separatorWidth,
+			st::mediaviewFont->height);
 		_dateNav = QRect(
-			st::mediaviewTextLeft + _nameNav.width() + st::mediaviewTextSkip,
+			st::mediaviewTextLeft
+				+ _nameNav.width()
+				+ st::mediaviewTextSkipHalf
+				+ separatorWidth
+				+ st::mediaviewTextSkipHalf,
 			height() - st::mediaviewTextTop,
 			st::mediaviewFont->width(_dateText),
 			st::mediaviewFont->height);
 	} else {
 		_nameNav = QRect();
+		_separatorNav = QRect();
 		_dateNav = QRect(
 			st::mediaviewTextLeft,
 			height() - st::mediaviewTextTop,
@@ -1988,6 +2013,7 @@ bool OverlayWidget::updateControlsAnimation(crl::time now) {
 			: QRect())
 		+ _headerNav
 		+ _nameNav
+		+ _separatorNav
 		+ _dateNav
 		+ _captionRect.marginsAdded(st::mediaviewCaptionPadding)
 		+ _groupThumbsRect
@@ -3429,7 +3455,7 @@ void OverlayWidget::refreshFromLabel() {
 
 void OverlayWidget::refreshCaption() {
 	_caption = Ui::Text::String();
-	const auto caption = [&] {
+	const auto caption = StripQuoteEntities([&] {
 		if (_stories) {
 			return _stories->captionText();
 		} else if (_message) {
@@ -3447,7 +3473,7 @@ void OverlayWidget::refreshCaption() {
 			return _message->translatedText();
 		}
 		return TextWithEntities();
-	}();
+	}());
 	if (caption.text.isEmpty()) {
 		return;
 	}
@@ -5626,6 +5652,18 @@ void OverlayWidget::paintFooterContent(
 		}
 	}
 
+	// separator
+	if (_separatorNav.isValid()) {
+		const auto separator = _separatorNav.translated(shift);
+		if (separator.intersects(clip)) {
+			p.setOpacity(controlOpacity(0.) * opacity);
+			p.drawText(
+				separator.left(),
+				separator.top() + st::mediaviewFont->ascent,
+				Ui::kQBullet);
+		}
+	}
+
 	// date
 	if (date.intersects(clip)) {
 		float64 o = overLevel(Over::Date);
@@ -5640,7 +5678,7 @@ void OverlayWidget::paintFooterContent(
 }
 
 QRect OverlayWidget::footerGeometry() const {
-	return _headerNav.united(_nameNav).united(_dateNav);
+	return _headerNav.united(_nameNav).united(_separatorNav).united(_dateNav);
 }
 
 void OverlayWidget::paintCaptionContent(
@@ -6551,6 +6589,7 @@ void OverlayWidget::handleMouseRelease(
 	}
 
 	if (_recognitionResult.success
+		&& !_dragging
 		&& !_recognitionResult.items.empty()
 		&& _showRecognitionResults
 		&& button == Qt::LeftButton) {
@@ -6560,6 +6599,9 @@ void OverlayWidget::handleMouseRelease(
 				QString(),
 				{ tr::lng_text_copied(tr::now) },
 				1000);
+			_over = _down = Over::None;
+			_pressed = false;
+			_dragging = 0;
 			return;
 		}
 	}

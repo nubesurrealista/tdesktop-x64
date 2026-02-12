@@ -1530,7 +1530,10 @@ void SetupChannelBox::firstCheckFail(UsernameResult result) {
 	}
 }
 
-EditNameBox::EditNameBox(QWidget*, not_null<UserData*> user)
+EditNameBox::EditNameBox(
+	QWidget*,
+	not_null<UserData*> user,
+	Focus focus)
 : _user(user)
 , _api(&_user->session().mtp())
 , _first(
@@ -1543,7 +1546,8 @@ EditNameBox::EditNameBox(QWidget*, not_null<UserData*> user)
 	st::defaultInputField,
 	tr::lng_signup_lastname(),
 	_user->lastName)
-, _invertOrder(langFirstNameGoesSecond()) {
+, _invertOrder(langFirstNameGoesSecond())
+, _focus(focus) {
 }
 
 void EditNameBox::prepare() {
@@ -1568,21 +1572,22 @@ void EditNameBox::prepare() {
 	_last->submits(
 	) | rpl::on_next([=] { submit(); }, _last->lifetime());
 
-	_first->customTab(true);
-	_last->customTab(true);
-
 	_first->tabbed(
-	) | rpl::on_next([=] {
+	) | rpl::on_next([=](not_null<bool*> handled) {
 		_last->setFocus();
+		*handled = true;
 	}, _first->lifetime());
 	_last->tabbed(
-	) | rpl::on_next([=] {
+	) | rpl::on_next([=](not_null<bool*> handled) {
 		_first->setFocus();
+		*handled = true;
 	}, _last->lifetime());
 }
 
 void EditNameBox::setInnerFocus() {
-	(_invertOrder ? _last : _first)->setFocusFast();
+	const auto focusLast = (_focus == Focus::LastName)
+		|| (_focus == Focus::FirstName && _invertOrder);
+	(focusLast ? _last : _first)->setFocusFast();
 }
 
 void EditNameBox::submit() {

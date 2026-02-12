@@ -224,7 +224,9 @@ public:
 	bool lastForceReplyReplied(const FullMsgId &replyTo) const;
 	bool lastForceReplyReplied() const;
 	bool cancelReplyOrSuggest(bool lastKeyboardUsed = false);
-	bool cancelReply(bool lastKeyboardUsed = false);
+	bool cancelReply(
+		bool lastKeyboardUsed = false,
+		bool keepHighlighterState = false);
 	bool cancelSuggestPost();
 	void cancelEdit();
 	void updateForwarding();
@@ -392,7 +394,6 @@ private:
 	void setTabbedPanel(std::unique_ptr<TabbedPanel> panel);
 	void updateField();
 	void fieldChanged();
-	void fieldTabbed();
 	void fieldFocused();
 	void fieldResized();
 
