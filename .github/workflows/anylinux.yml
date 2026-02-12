@@ -19,10 +19,10 @@ jobs:
     steps:
       - name: Install Base System Dependencies
         run: |
-          sed -i 's/^NoExtract *=.*locale.*//g' /etc/pacman.conf
+          sed -i -E 's@[[:space:]]*usr/share/locale/*@@g; s@[[:space:]]+@ @g; s@[[:space:]]+$@@' /etc/pacman.conf
           
-          pacman -Sy --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc enchant2 hunspell hunspell-es_es qt6-5compat
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb glibc gcc
           
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
@@ -87,7 +87,7 @@ jobs:
           export DESKTOP="build_dir/64Gram.desktop"
           export STRIP=1
 
-          xvfb-run ./quick-sharun ./build_dir/Telegram /usr/lib/libenchant-2.so* /usr/lib/libhunspell-1.7.so*
+          xvfb-run ./quick-sharun ./build_dir/Telegram
           ./quick-sharun --make-appimage
 
       - name: Upload AppImage Artifact
