@@ -19,8 +19,7 @@ jobs:
     steps:
       - name: Install Base System Dependencies
         run: |
-          sed -i '/NoExtract  = usr\/share\/locale\/\*/d' /etc/pacman.conf
-          sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
+          sed -i -E 's@[[:space:]]*usr/share/locale/*@@g; s@[[:space:]]+@ @g; s@[[:space:]]+$@@' /etc/pacman.conf
           
           pacman -Syu --noconfirm
           pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb glibc gcc enchant2 hunspell hunspell-es_es qt6-5compat
