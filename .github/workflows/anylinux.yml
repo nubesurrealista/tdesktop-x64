@@ -23,7 +23,7 @@ jobs:
           sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
           
           pacman -Syu --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb glibc
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb glibc gcc
           
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
