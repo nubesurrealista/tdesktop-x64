@@ -23,7 +23,7 @@ jobs:
           sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
           
           pacman -Sy --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc hunspell enchant mythes glibc
           
           pacman -S --noconfirm glibc
           
@@ -89,8 +89,9 @@ jobs:
           export ICON="build_dir/icon.svg"
           export DESKTOP="build_dir/64Gram.desktop"
           export STRIP=1
-
-          xvfb-run ./quick-sharun ./build_dir/Telegram
+          
+          xvfb-run ./quick-sharun ./build_dir/Telegram /usr/lib/gconv/ /usr/lib/libhunspell* /usr/lib/libenchant* /usr/share/locale/es/ /usr/lib/libnss*
+          
           ./quick-sharun --make-appimage
 
       - name: Upload AppImage Artifact
