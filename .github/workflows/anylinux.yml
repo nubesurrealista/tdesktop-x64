@@ -23,9 +23,7 @@ jobs:
           sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
           
           pacman -Sy --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc hunspell enchant mythes glibc
-          
-          pacman -S --noconfirm glibc
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc glibc hunspell hunspell-es_es enchant nspr nss
           
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
@@ -42,9 +40,8 @@ jobs:
 
       - name: Prepare Workspace and Tools
         run: |
-          mkdir -p build_dir
-          mv Telegram build_dir/Telegram
-          chmod +x build_dir/Telegram
+          chmod +x Telegram
+          mv Telegram /usr/bin/Telegram
 
           wget --retry-connrefused --tries=30 "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/main/useful-tools/quick-sharun.sh" -O ./quick-sharun
           chmod +x ./quick-sharun
@@ -59,6 +56,7 @@ jobs:
 
       - name: Create Desktop Entry
         run: |
+          mkdir -p build_dir
           cat << 'EOF' > build_dir/64Gram.desktop
           [Desktop Entry]
           Name=64Gram
@@ -77,7 +75,9 @@ jobs:
       - name: Build AppImage
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
-          DEBLOAT_LOCALE: 0
+          ANYLINUX_LIB: 1
+          DEPLOY_LOCALE: 1
+          STRACE_MODE: 1
           LANG: es_ES.UTF-8
           LC_ALL: es_ES.UTF-8
         run: |
@@ -85,13 +85,23 @@ jobs:
           export VERSION=$(date +%Y%m%d)
           export OUTPATH="./dist"
           export UPINFO="gh-releases-zsync|nubesurrealista|tdesktop-x64|latest|*x86_64.AppImage.zsync"
-          export ADD_HOOKS="vulkan-check.src.hook"
+          export ADD_HOOKS="vulkan-check.src.hook:self-updater.bg.hook"
           export ICON="build_dir/icon.svg"
           export DESKTOP="build_dir/64Gram.desktop"
           export STRIP=1
-          
-          xvfb-run ./quick-sharun ./build_dir/Telegram /usr/lib/gconv/ /usr/lib/libhunspell* /usr/lib/libenchant* /usr/share/locale/es/ /usr/lib/libnss*
-          
+
+          xvfb-run ./quick-sharun /usr/bin/Telegram \
+            /usr/lib/libnss3.so \
+            /usr/lib/libnssutil3.so \
+            /usr/lib/libsmime3.so \
+            /usr/lib/libssl3.so \
+            /usr/lib/libsoftokn3.so \
+            /usr/lib/libfreeblpriv3.so \
+            /usr/lib/libenchant-2.so* \
+            /usr/lib/libhunspell-1.7.so* \
+            /usr/lib/enchant-2/* \
+            /usr/lib/gconv/*
+
           ./quick-sharun --make-appimage
 
       - name: Upload AppImage Artifact
