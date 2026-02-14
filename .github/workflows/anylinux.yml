@@ -111,7 +111,7 @@ jobs:
           ./quick-sharun --make-appimage
 
       - name: Upload AppImage Artifact
-        uses: actions/artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: 64Gram-AnyLinux-AppImage
           path: ./dist/*
