@@ -9,7 +9,7 @@ on:
 
 jobs:
   appimage:
-    name: Package 64Gram AnyLinux
+    name: Package 64Gram AnyLinux (Arch)
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -28,6 +28,7 @@ jobs:
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
           export LANG=es_ES.UTF-8
+          export LC_ALL=es_ES.UTF-8
 
       - name: Download Latest Binary Artifact
         uses: dawidd6/action-download-artifact@v6
@@ -52,7 +53,7 @@ jobs:
           curl -fsSL "https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-x86_64" -o /usr/local/bin/sharun
           chmod +x /usr/local/bin/sharun
 
-          ./get-debloated-pkgs --add-common --prefer-nano
+          ./get-debloated-pkgs --add-mesa --prefer-nano
 
           find /usr/lib/enchant-2/ -type f ! -name "*hunspell*" -delete
 
@@ -79,7 +80,10 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           ANYLINUX_LIB: 1
           DEPLOY_LOCALE: 1
+          DEBLOAT_LOCALE: 0
           STRACE_MODE: 1
+          DEPLOY_OPENGL: 1
+          DEPLOY_VULKAN: 1
           LANG: es_ES.UTF-8
           LC_ALL: es_ES.UTF-8
         run: |
