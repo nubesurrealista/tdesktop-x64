@@ -23,7 +23,7 @@ jobs:
           sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
           
           pacman -Sy --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc glibc hunspell hunspell-es_es enchant nspr nss aspell hspell
+          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc glibc hunspell hunspell-es_es enchant nspr nss aspell hspell fontconfig libx11 libxkbcommon
           
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
@@ -53,7 +53,7 @@ jobs:
           curl -fsSL "https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-x86_64" -o /usr/local/bin/sharun
           chmod +x /usr/local/bin/sharun
 
-          ./get-debloated-pkgs --add-mesa --prefer-nano
+          ./get-debloated-pkgs --add-mesa --add-common --prefer-nano
 
           find /usr/lib/enchant-2/ -type f ! -name "*hunspell*" -delete
 
@@ -111,7 +111,7 @@ jobs:
           ./quick-sharun --make-appimage
 
       - name: Upload AppImage Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/artifact@v4
         with:
           name: 64Gram-AnyLinux-AppImage
           path: ./dist/*
