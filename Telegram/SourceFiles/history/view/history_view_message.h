@@ -37,6 +37,10 @@ namespace Reactions {
 class InlineList;
 } // namespace Reactions
 
+namespace ReplyButton {
+struct ButtonParameters;
+} // namespace ReplyButton
+
 // Special type of Component for the channel actions log.
 struct LogEntryOriginal : RuntimeComponent<LogEntryOriginal, Element> {
 	LogEntryOriginal();
@@ -57,6 +61,23 @@ struct PsaTooltipState : RuntimeComponent<PsaTooltipState, Element> {
 	mutable ClickHandlerPtr link;
 	mutable Ui::Animations::Simple buttonVisibleAnimation;
 	mutable bool buttonVisible = true;
+};
+
+enum class BadgeRole : uchar {
+	User,
+	Admin,
+	Creator,
+};
+
+struct RightBadge : RuntimeComponent<RightBadge, Element> {
+	Ui::Text::String tag;
+	Ui::Text::String boosts;
+	mutable ClickHandlerPtr tagLink;
+	mutable ClickHandlerPtr boostsLink;
+	int width = 0;
+	BadgeRole role = BadgeRole::User;
+	bool overridden = false;
+	bool special = false;
 };
 
 struct BottomRippleMask {
@@ -112,6 +133,9 @@ public:
 	Reactions::ButtonParameters reactionButtonParameters(
 		QPoint position,
 		const TextState &reactionState) const override;
+	ReplyButton::ButtonParameters replyButtonParameters(
+		QPoint position,
+		const TextState &replyState) const override;
 	int reactionsOptimalWidth() const override;
 
 	void unloadHeavyPart() override;
@@ -287,7 +311,6 @@ private:
 	[[nodiscard]] bool needInfoDisplay() const;
 	[[nodiscard]] bool invertMedia() const;
 	[[nodiscard]] bool hasFastReply() const;
-	[[nodiscard]] bool hasFastForward() const;
 	[[nodiscard]] bool displayFastReply() const;
 
 	[[nodiscard]] bool isPinnedContext() const;
@@ -324,6 +347,7 @@ private:
 	void psaTooltipToggled(bool shown) const;
 
 	void refreshRightBadge();
+	[[nodiscard]] int rightBadgeWidth() const;
 	void validateFromNameText(PeerData *from) const;
 	void validateForwardedNameText(HistoryItem *item) const;
 	void ensureFromNameStatusLink(not_null<PeerData*> peer) const;
@@ -339,13 +363,11 @@ private:
 	mutable Ui::Text::String _fromName;
 	mutable std::unique_ptr<FromNameStatus> _fromNameStatus;
 	mutable std::unique_ptr<Ui::RoundCheckbox> _selectionRoundCheckbox;
-	mutable bool _previousMode = false;
-	Ui::Text::String _rightBadge;
+
 	mutable int _fromNameVersion = 0;
-	uint32 _bubbleWidthLimit : 28 = 0;
+	uint32 _bubbleWidthLimit : 27 = 0;
 	uint32 _invertMedia : 1 = 0;
 	uint32 _hideReply : 1 = 0;
-	uint32 _rightBadgeHasBoosts : 1 = 0;
 	uint32 _postShowingAuthor : 1 = 0;
 
 	BottomInfo _bottomInfo;

@@ -1773,8 +1773,8 @@ void PeerData::processTopics(const MTPVector<MTPForumTopic> &topics) {
 }
 
 bool PeerData::allowsForwarding() const {
-	if (isUser()) {
-		return true;
+	if (const auto user = asUser()) {
+		return user->allowsForwarding();
 	} else if (const auto channel = asChannel()) {
 		return channel->allowsForwarding();
 	} else if (const auto chat = asChat()) {
@@ -1927,6 +1927,17 @@ bool PeerData::canManageGroupCall() const {
 			|| (group->adminRights() & ChatAdminRight::ManageCall);
 	}
 	Unexpected("Peer type in PeerData::canManageGroupCall.");
+}
+
+bool PeerData::canManageRanks() const {
+	if (const auto chat = asChat()) {
+		return chat->amCreator()
+			|| (chat->adminRights() & ChatAdminRight::ManageRanks);
+	} else if (const auto channel = asChannel()) {
+		return channel->amCreator()
+			|| (channel->adminRights() & ChatAdminRight::ManageRanks);
+	}
+	return false;
 }
 
 bool PeerData::amMonoforumAdmin() const {
@@ -2280,9 +2291,9 @@ std::optional<uint8> ColorIndexFromColor(const MTPPeerColor *color) {
 	});
 }
 
-bool IsBotCanManageTopics(not_null<PeerData*> peer) {
+bool IsBotUserCreatesTopics(not_null<PeerData*> peer) {
 	if (const auto user = peer->asUser()) {
-		return user->botInfo && user->botInfo->canManageTopics;
+		return user->botInfo && user->botInfo->userCreatesTopics;
 	}
 	return false;
 }
