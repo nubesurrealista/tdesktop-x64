@@ -165,6 +165,7 @@ public:
 		FullMsgId context,
 		QRect optionRect);
 	void elementSubmitAddPollOption(FullMsgId context);
+	void hideElementOverlay();
 	void elementOpenPhoto(
 		not_null<PhotoData*> photo,
 		FullMsgId context);
