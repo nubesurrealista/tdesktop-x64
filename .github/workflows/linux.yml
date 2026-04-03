@@ -49,8 +49,9 @@ jobs:
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
           tool-cache: true
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Buildx.
+        uses: docker/setup-buildx-action@v4
 
       - name: Libraries cache.
         uses: actions/cache@v5
@@ -59,8 +60,9 @@ jobs:
           key: ${{ runner.OS }}-libs-${{ hashFiles('Telegram/build/docker/centos_env/**')
             }}
           restore-keys: ${{ runner.OS }}-libs-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
+
+      - name: Libraries.
+        uses: docker/build-push-action@v7
         with:
           context: Telegram/build/docker/centos_env
           load: ${{ env.ONLY_CACHE == 'false' }}
@@ -122,7 +124,7 @@ jobs:
           mkdir artifact
           mv Telegram artifact/
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
           name: Telegram-Desktop

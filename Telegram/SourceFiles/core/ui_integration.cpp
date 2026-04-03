@@ -200,7 +200,7 @@ const auto kBadPrefix = u"http://"_q;
 	if (flags & FormattedDateFlag::Relative) {
 		return FormatDateRelative(date);
 	}
-	const auto dateTime = base::unixtime::parse(date);
+	const auto dateTime = QDateTime::fromSecsSinceEpoch(date);
 	const auto locale = QLocale();
 	auto parts = QStringList();
 	const auto hasDayOfWeek = (flags & FormattedDateFlag::DayOfWeek);
@@ -303,6 +303,14 @@ void UiIntegration::textActionsUpdated() {
 
 void UiIntegration::activationFromTopPanel() {
 	Platform::IgnoreApplicationActivationRightNow();
+}
+
+void UiIntegration::touchCounterIncrement() {
+	++_touchCounter;
+}
+
+int UiIntegration::touchCounterNow() {
+	return _touchCounter;
 }
 
 bool UiIntegration::screenIsLocked() {
@@ -499,7 +507,8 @@ void UiIntegration::getTranslateResult(QString query, bool usedForInput, std::fu
 					MTP_vector<MTPTextWithEntities>(1, MTP_textWithEntities(
 						MTP_string(query),
 						MTP_vector<MTPMessageEntity>())),
-					MTP_string(targetLang)
+					MTP_string(targetLang),
+					MTPstring() // tone
 				)).done([=](const MTPmessages_TranslatedText& result) {
 					onFinished(result.data().vresult().v[0].data().vtext().v);
 				}).fail([=] {

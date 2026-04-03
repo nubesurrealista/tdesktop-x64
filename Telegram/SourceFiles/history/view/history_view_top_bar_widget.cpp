@@ -31,6 +31,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/fields/input_field.h"
 #include "ui/widgets/popup_menu.h"
+#include "ui/widgets/shadow.h"
 #include "ui/widgets/menu/menu_add_action_callback_factory.h"
 #include "ui/effects/radial_animation.h"
 #include "ui/boxes/report_box_graphics.h" // Ui::ReportReason
@@ -413,7 +414,8 @@ void TopBarWidget::showPeerMenu() {
 				QPoint(
 					width()
 						+ st::topBarMenuPosition.x()
-						+ _menu->st().shadow.extend.right(),
+						+ Ui::BoxShadow::ExtendFor(
+							_menu->st().shadow).right(),
 					st::topBarMenuPosition.y()))));
 	}
 }
@@ -1246,12 +1248,14 @@ void TopBarWidget::updateControlsVisibility() {
 		hideChildren();
 		return;
 	}
-	_clear->show();
-	_delete->setVisible(_canDelete);
-	_forward->setVisible(_canForward);
-	_forwardNoQuote->setVisible(_canForward);
-	_savedMessages->setVisible(_canForward);
-	_sendNow->setVisible(_canSendNow);
+	const auto visible = showSelectedState() || _selectedShown.animating();
+	_clear->setVisible(visible);
+	_delete->setVisible(_canDelete && visible);
+	_forward->setVisible(_canForward && visible);
+	_forwardNoQuote->setVisible(_canForward && visible);
+	_savedMessages->setVisible(_canForward && visible);
+	_sendNow->setVisible(_canSendNow && visible);
+
 
 	const auto isOneColumn = _controller->adaptive().isOneColumn();
 	const auto backVisible = !rootChatsListBar()
@@ -1705,6 +1709,9 @@ bool TopBarWidget::showSelectedActions() const {
 }
 
 void TopBarWidget::slideAnimationCallback() {
+	if (!_selectedShown.animating() && !_searchShown.animating()) {
+		updateControlsVisibility();
+	}
 	updateControlsGeometry();
 	update();
 }

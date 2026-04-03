@@ -923,6 +923,10 @@ void Instance::show(
 		Core::App().hideMediaView();
 	}
 
+	if (Core::App().settings().normalizeIvZoom()) {
+		Core::App().saveSettingsDelayed();
+	}
+
 	const auto guard = gsl::finally([&] {
 		requestFull(session, data->id());
 	});
