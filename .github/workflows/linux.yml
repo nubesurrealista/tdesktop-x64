@@ -78,7 +78,7 @@ jobs:
           tool-cache: true
 
       - name: Set up Docker Buildx.
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Libraries cache.
         uses: actions/cache@v5
@@ -88,7 +88,7 @@ jobs:
           restore-keys: ${{ runner.OS }}-libs-
 
       - name: Libraries.
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: Telegram/build/docker/centos_env
           load: ${{ env.ONLY_CACHE == 'false' }}
@@ -155,7 +155,7 @@ jobs:
           mkdir artifact
           mv Telegram artifact/
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: env.UPLOAD_ARTIFACT == 'true'
         name: Upload artifact.
         with:
