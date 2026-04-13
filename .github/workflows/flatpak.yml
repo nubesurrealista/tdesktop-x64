@@ -31,7 +31,7 @@ jobs:
           path: bin_archive
       - name: Prepare Assets
         run: |
-          cat <<EOT > com.nube.64Gram.desktop
+          cat <<EOT > com.nube.Telegram.desktop
           [Desktop Entry]
           Name=64Gram
           GenericName=Telegram Desktop fork
@@ -39,7 +39,7 @@ jobs:
           Comment=64Gram Desktop Messenger
           Comment[es]=Fork de TG Desktop
           Exec=Telegram -- %u
-          Icon=com.nube.64Gram
+          Icon=com.nube.Telegram
           Terminal=false
           Type=Application
           Categories=Network;InstantMessaging;
@@ -48,8 +48,8 @@ jobs:
           EOT
       - name: Create Flatpak Manifest
         run: |
-          cat <<EOF > com.nube.64Gram.yml
-          app-id: com.nube.64Gram
+          cat <<EOF > com.nube.Telegram.yml
+          app-id: com.nube.Telegram
           runtime: org.gnome.Platform
           runtime-version: '49'
           sdk: org.gnome.Sdk
@@ -75,8 +75,8 @@ jobs:
                 - mkdir -p /app/bin /app/share/applications /app/share/icons/hicolor/512x512/apps/
                 - cp Telegram_bin /app/bin/Telegram
                 - chmod +x /app/bin/Telegram
-                - cp app_icon.png /app/share/icons/hicolor/512x512/apps/com.nube.64Gram.png
-                - cp com.nube.64Gram.desktop /app/share/applications/com.nube.64Gram.desktop
+                - cp app_icon.png /app/share/icons/hicolor/512x512/apps/com.nube.Telegram.png
+                - cp com.nube.Telegram.desktop /app/share/applications/com.nube.Telegram.desktop
               sources:
                 - type: file
                   path: bin_archive/Telegram
@@ -85,12 +85,12 @@ jobs:
                   path: Telegram/Resources/art/icon512.png
                   dest-filename: app_icon.png
                 - type: file
-                  path: com.nube.64Gram.desktop
+                  path: com.nube.Telegram.desktop
           EOF
       - name: Build Flatpak Bundle
         run: |
           flatpak-builder --user --install-deps-from=flathub --disable-rofiles-fuse --force-clean --repo=repo build_dir com.nube.64Gram.yml
-          flatpak build-bundle repo 64Gram.flatpak com.nube.64Gram
+          flatpak build-bundle repo 64Gram.flatpak com.nube.Telegram
       - name: Upload Flatpak
         uses: actions/upload-artifact@v7
         with:
