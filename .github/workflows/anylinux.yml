@@ -29,7 +29,7 @@ jobs:
           export LANG=es_ES.UTF-8
           export LC_ALL=es_ES.UTF-8
       - name: Download Latest Binary Artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v20
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: linux.yml
@@ -107,7 +107,7 @@ jobs:
 
           ./quick-sharun --make-appimage
       - name: Upload AppImage Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: 64Gram-AnyLinux-AppImage
           path: ./dist/*
