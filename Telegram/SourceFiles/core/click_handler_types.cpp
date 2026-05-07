@@ -74,6 +74,19 @@ constexpr auto kReminderSetToastDuration = 4 * crl::time(1000);
 	return result;
 }
 
+[[nodiscard]] bool IsTelegramShortLinkHost(const QUrl &url) {
+	using namespace qthelp;
+
+	return regex_match(
+		"(^|\\.)(telegram\\.(me|dog)|t\\.me)$",
+		url.host(),
+		RegExOption::CaseInsensitive).valid();
+}
+
+[[nodiscard]] bool HiddenUrlRequiresConfirmation(const QUrl &url) {
+	return UrlRequiresConfirmation(url) || IsTelegramShortLinkHost(url);
+}
+
 // Possible context owners: media viewer, profile, history widget.
 
 void SearchByHashtag(ClickContext context, const QString &tag) {
