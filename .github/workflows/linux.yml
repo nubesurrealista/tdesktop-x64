@@ -1,17 +1,18 @@
+---
 name: Linux Build
 on:
   push:
     paths-ignore:
       - docs/**
-      - "**.md"
+      - '**.md'
       - changelog.txt
       - LEGAL
       - LICENSE
       - .github/**
-      - "!.github/workflows/linux.yml"
+      - '!.github/workflows/linux.yml'
       - snap/**
       - Telegram/build/**
-      - "!Telegram/build/docker/centos_env/**"
+      - '!Telegram/build/docker/centos_env/**'
       - Telegram/Resources/uwp/**
       - Telegram/Resources/winrc/**
       - Telegram/SourceFiles/platform/win/**
@@ -25,8 +26,8 @@ jobs:
     name: Rocky Linux 8
     runs-on: ubuntu-latest
     env:
-      UPLOAD_ARTIFACT: "true"
-      ONLY_CACHE: "false"
+      UPLOAD_ARTIFACT: 'true'
+      ONLY_CACHE: 'false'
       IMAGE_TAG: tdesktop:centos_env
       BUILD_TYPE: Release
     steps:
@@ -44,23 +45,18 @@ jobs:
           DOCKERFILE=$(DEBUG= LTO= poetry run gen_dockerfile)
           echo "$DOCKERFILE" > Dockerfile
           rm -rf __pycache__
-          
       - name: Free up disk space
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
           tool-cache: true
-
       - name: Set up Docker Buildx.
         uses: docker/setup-buildx-action@v4
-
       - name: Libraries cache.
         uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/.buildx-cache
-          key: ${{ runner.OS }}-libs-${{ hashFiles('Telegram/build/docker/centos_env/**')
-            }}
+          key: ${{ runner.OS }}-libs-${{ hashFiles('Telegram/build/docker/centos_env/**') }}
           restore-keys: ${{ runner.OS }}-libs-
-
       - name: Libraries.
         uses: docker/build-push-action@v7
         with:
@@ -102,9 +98,8 @@ jobs:
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF
       - name: Strip binaries
         if: env.ONLY_CACHE == 'false'
-        run: >
-          find out/${{ env.BUILD_TYPE }} -type f -executable -exec strip --strip-all
-          {} \;
+        run: |
+          find out/${{ env.BUILD_TYPE }} -type f -executable -exec strip --strip-all {} \;
       - name: Verify build
         if: env.ONLY_CACHE == 'false'
         run: |
@@ -123,7 +118,6 @@ jobs:
           cd out/Release
           mkdir artifact
           mv Telegram artifact/
-
       - uses: actions/upload-artifact@v7
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
