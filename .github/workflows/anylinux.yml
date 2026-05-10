@@ -21,8 +21,7 @@ jobs:
           sed -i '/NoExtract  = usr\/share\/locale\/\*/d' /etc/pacman.conf
           sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
 
-          pacman -Sy --noconfirm
-          pacman -S --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc glibc hunspell hunspell-es_es enchant nspr nss aspell hspell fontconfig libx11 libxkbcommon webkit2gtk-4.1 geoclue gst-plugins-good gst-plugin-va
+          pacman -Syu --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc glibc hunspell hunspell-es_es enchant nspr nss aspell hspell fontconfig libx11 libxkbcommon webkit2gtk-4.1 geoclue gst-plugins-good gst-plugin-va
 
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
