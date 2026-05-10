@@ -12,16 +12,15 @@ jobs:
     name: Package 64Gram AnyLinux (Arch)
     runs-on: ubuntu-latest
     container:
-      image: archlinux:latest
+      image: ghcr.io/pkgforge-dev/archlinux:latest
       options: '--privileged'
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Preparing Container
+        uses: pkgforge-dev/anylinux-setup-action@8872fabe63f9a00b35e25b2f46da62a05afc9a7d
       - name: Install Base System Dependencies
         run: |
-          sed -i '/NoExtract  = usr\/share\/locale\/\*/d' /etc/pacman.conf
-          sed -i '/NoExtract   = !*locale*\/en*/d' /etc/pacman.conf
-
-          pacman -Syu --noconfirm wget curl ca-certificates binutils desktop-file-utils grep sed coreutils zsync xorg-server-xvfb gcc glibc hunspell hunspell-es_es enchant nspr nss aspell hspell fontconfig libx11 libxkbcommon webkit2gtk-4.1 geoclue gst-plugins-good gst-plugin-va
+          pacman -Syu --noconfirm desktop-file-utils zsync xorg-server-xvfb hunspell hunspell-es_es enchant nspr nss aspell hspell fontconfig libx11 libxkbcommon webkit2gtk-4.1 geoclue gst-plugins-good gst-plugin-va
 
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
@@ -40,13 +39,7 @@ jobs:
           chmod +x Telegram
           mv Telegram /usr/bin/Telegram
 
-          wget --retry-connrefused --tries=30 "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/main/useful-tools/quick-sharun.sh" -O ./quick-sharun
-          chmod +x ./quick-sharun
-
-          wget --retry-connrefused --tries=30 "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/main/useful-tools/get-debloated-pkgs.sh" -O ./get-debloated-pkgs
-          chmod +x ./get-debloated-pkgs
-
-          ./get-debloated-pkgs --add-mesa --add-common --prefer-nano ffmpeg-mini
+          get-debloated-pkgs --add-mesa --add-common --prefer-nano ffmpeg-mini
 
           find /usr/lib/enchant-2/ -type f ! -name "*hunspell*" -delete
       - name: Create Desktop Entry
@@ -87,7 +80,7 @@ jobs:
           export DESKTOP="build_dir/64Gram.desktop"
           export STRIP=1
 
-          xvfb-run ./quick-sharun /usr/bin/Telegram \
+          xvfb-run quick-sharun /usr/bin/Telegram \
             /usr/lib/libwayland-*.so* \
             /usr/lib/libgeoclue*.so* \
             /usr/lib/libwebkit2gtk-4.1.so* \
@@ -104,7 +97,7 @@ jobs:
 
           echo 'DESKTOPINTEGRATION=0' >> ./AppDir/.env
 
-          ./quick-sharun --make-appimage
+          quick-sharun --make-appimage
       - name: Upload AppImage Artifact
         uses: actions/upload-artifact@v7
         with:
