@@ -1677,7 +1677,7 @@ void Controller::fillManageSection() {
 			tr::lng_manage_peer_star_ref(),
 			rpl::single(QString()), // Empty count.
 			std::move(callback),
-			{ .icon = &st::menuIconStarRefShare, .newBadge = true });
+			{ .icon = &st::menuIconStarRefShare });
 	}
 
 	if (canEditStickers || canDeleteChannel) {
@@ -2003,7 +2003,7 @@ void Controller::fillBotAffiliateProgram() {
 		[controller = _navigation->parentController(), user] {
 			controller->showSection(Info::BotStarRef::Setup::Make(user));
 		},
-		{ .icon = &st::menuIconSharing, .newBadge = true });
+		{ .icon = &st::menuIconSharing });
 }
 
 void Controller::fillBotEditIntroButton() {
