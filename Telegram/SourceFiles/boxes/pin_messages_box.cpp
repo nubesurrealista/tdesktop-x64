@@ -67,7 +67,6 @@ void PinMessageBox(
 		topicRootId,
 		monoforumPeerId);
 	const auto state = box->lifetime().make_state<State>();
-	const auto api = &peer->session().api();
 
 	auto checkbox = [&]() -> object_ptr<Ui::Checkbox> {
 		if (peer->isUser() && !peer->isSelf()) {
@@ -109,15 +108,12 @@ void PinMessageBox(
 		if (state->pinForPeer && !state->pinForPeer->checked()) {
 			flags |= MTPmessages_UpdatePinnedMessage::Flag::f_pm_oneside;
 		}
-		state->requestId = api->request(MTPmessages_UpdatePinnedMessage(
+		state->requestId = peer->session().api().request(MTPmessages_UpdatePinnedMessage(
 			MTP_flags(flags),
 			peer->input(),
 			MTP_int(msgId)
 		)).done([=](const MTPUpdates &result) {
 			peer->session().api().applyUpdates(result);
-			box->closeBox();
-		}).fail([=] {
-			box->closeBox();
 		}).send();
 	};
 
