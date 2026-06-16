@@ -344,6 +344,9 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *e) override;
 	void mouseMoveEvent(QMouseEvent *e) override;
 
+public:
+	void synteticScrollToY(int y);
+
 private:
 	using TabbedPanel = ChatHelpers::TabbedPanel;
 	using TabbedSelector = ChatHelpers::TabbedSelector;
@@ -491,6 +494,7 @@ private:
 
 	void showFinished();
 	void updateOverStates(QPoint pos);
+	void clearOverStates();
 	void chooseAttach(std::optional<bool> overrideSendImagesAsPhotos = {});
 	void sendButtonClicked();
 	void newItemAdded(not_null<HistoryItem*> item);
@@ -540,6 +544,7 @@ private:
 	void updateAiButtonVisibility();
 	void updateAiButtonGeometry();
 	void showAiComposeBox();
+	void triggerAiApplyInPlace();
 	void initSendAsFileButton();
 	void sendTextAsFile(
 		const QString &fileText,
@@ -659,11 +664,6 @@ private:
 	int itemTopForHighlight(not_null<HistoryView::Element*> view) const;
 	void scrollToCurrentVoiceMessage(FullMsgId fromId, FullMsgId toId);
 
-	// Scroll to current y without updating the _lastUserScrolled time.
-	// Used to distinguish between user scrolls and syntetic scrolls.
-	// This one is syntetic.
-	void synteticScrollToY(int y);
-
 	void writeDrafts();
 	void writeDraftTexts();
 	void writeDraftCursors();
@@ -682,6 +682,7 @@ private:
 	void setHistory(History *history);
 	void setEditMsgId(MsgId msgId);
 
+	friend class HistoryInner;
 	HistoryItem *getItemFromHistoryOrMigrated(MsgId genericMsgId) const;
 	void animatedScrollToItem(MsgId msgId);
 	void animatedScrollToY(int scrollTo, HistoryItem *attachTo = nullptr);
@@ -950,6 +951,7 @@ private:
 		not_null<HistoryItem*>,
 		ItemRevealAnimation> _itemRevealAnimations;
 	int _itemsRevealHeight = 0;
+
 
 	bool _sponsoredMessagesStateKnown = false;
 	bool _justMarkingAsRead = false;
