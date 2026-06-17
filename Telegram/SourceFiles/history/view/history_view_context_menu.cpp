@@ -1906,7 +1906,7 @@ void ViewAsJSON(
 	}
 	item->history()->session().api().exportMessageAsBase64(item,
 		crl::guard(show, [=](const QString& base64) {
-			Core::App().iv().showTLViewer(MTP::details::kCurrentLayer, base64);
+			// Core::App().iv().showTLViewer(MTP::details::kCurrentLayer, base64);
 		}),
 		crl::guard(show, [=] {
 			show->showToast(u"error"_q);

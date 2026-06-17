@@ -724,11 +724,10 @@ void InitSpellchecker(
 			tr::lng_settings_manage_dictionaries(tr::now),
 			[=] { show->showBox(Box<Ui::ManageDictionariesBox>(session)); }
 		});
-	const auto s = Ui::CreateChild<SpellingHighlighter>(
+	Ui::CreateChild<SpellingHighlighter>(
 		field.get(),
 		Core::App().settings().spellcheckerEnabledValue(),
 		menuItem);
-	field->setExtendedContextMenu(s->contextMenuCreated());
 #endif // TDESKTOP_DISABLE_SPELLCHECK
 }
 

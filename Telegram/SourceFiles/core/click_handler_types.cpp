@@ -288,7 +288,7 @@ void HiddenUrlClickHandler::Open(QString url, QVariant context) {
 			: QUrl::fromUserInput(url);
 		auto my = context.value<ClickHandlerContext>();
 		auto openContext = context;
-		const disableLinkWarning = GetEnhancedBool("disable_link_warning");
+		const auto disableLinkWarning = GetEnhancedBool("disable_link_warning");
 		const auto forceConfirmation = my.forceExternalUrlConfirmation
 			&& my.ignoreIv
 			&& !disableLinkWarning;

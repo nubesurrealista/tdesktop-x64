@@ -27,8 +27,6 @@ class RpWindow;
 
 namespace Iv {
 
-constexpr auto kTLViewerUrl = "https://tdesktop-x64.github.io/tlv/"_cs;
-
 class Controller final {
 public:
 	explicit Controller(not_null<Delegate*> delegate);
@@ -54,8 +52,6 @@ public:
 
 	[[nodiscard]] static bool IsGoodTonSiteUrl(const QString &uri);
 	void showTonSite(const Webview::StorageId &storageId, QString uri);
-
-	void showTLViewer(const Webview::StorageId& storageId, QString uri);
 
 	[[nodiscard]] bool active() const;
 	void minimize();

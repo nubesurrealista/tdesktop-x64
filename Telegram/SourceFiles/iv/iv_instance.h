@@ -33,7 +33,6 @@ class Data;
 struct RichPage;
 class Shown;
 class TonSite;
-class TLViewer;
 
 class Instance final {
 public:
@@ -67,8 +66,6 @@ public:
 	void showTonSite(
 		const QString &uri,
 		QVariant context = {});
-
-	void showTLViewer(int32 layer, const QString& object);
 
 	void showRichMessage(
 		not_null<Window::SessionController*> controller,
@@ -194,8 +191,6 @@ private:
 	mtpRequestId _ivRequestId = 0;
 
 	std::unique_ptr<TonSite> _tonSite;
-
-	std::unique_ptr<TLViewer> _tlv;
 
 	struct MarkdownBinding {
 		Main::Session *session = nullptr;

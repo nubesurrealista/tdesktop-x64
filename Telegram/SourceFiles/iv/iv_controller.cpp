@@ -174,22 +174,6 @@ void Controller::showTonSite(
 	_windowTitleText = _subtitleText.value();
 }
 
-void Controller::showTLViewer(
-	const Webview::StorageId& storageId,
-	QString url) {
-	if (!_webview) {
-		createWebview(storageId);
-	}
-	if (_webview && _webview->widget()) {
-		_webview->navigate(url);
-		activate();
-	}
-	_url = url;
-	_subtitleText = tr::lng_context_view_as_json(tr::now);
-	_windowTitleText = _subtitleText.value();
-	_menuToggle->hide();
-}
-
 void Controller::createWindow() {
 	_window = std::make_unique<Ui::RpWindow>();
 	const auto window = _window.get();
@@ -363,7 +347,6 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 		Q_UNUSED(newWindow);
 
 		if (uri == u"about:blank"_q
-			|| uri.startsWith(Iv::kTLViewerUrl.utf16())
 			|| QUrl(uri).host().toLower().endsWith(u".magic.org"_q)) {
 			return true;
 		}
