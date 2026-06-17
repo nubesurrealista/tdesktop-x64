@@ -97,6 +97,7 @@
 [submodule "Telegram/ThirdParty/MicroTeX"]
 	path = Telegram/ThirdParty/MicroTeX
 	url = https://github.com/desktop-app/MicroTeX.git
+	branch = tdesktop
 [submodule "Telegram/ThirdParty/TooManyCooks"]
 	path = Telegram/ThirdParty/TooManyCooks
 	url = https://github.com/tzcnt/TooManyCooks.git
