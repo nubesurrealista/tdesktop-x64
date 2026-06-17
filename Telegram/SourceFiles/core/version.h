@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -22,7 +22,7 @@ constexpr auto AppId = "{53F49750-6209-4FBF-9CA8-7A333C87D1ED}"_cs;
 constexpr auto AppNameOld = "Telegram Win (Unofficial)"_cs;
 constexpr auto AppName = "64Gram Desktop"_cs;
 constexpr auto AppFile = "64Gram"_cs;
-constexpr auto AppVersion = 6008002;
-constexpr auto AppVersionStr = "6.8.2";
+constexpr auto AppVersion = 6009003;
+constexpr auto AppVersionStr = "6.9.3";
 constexpr auto AppBetaVersion = false;
 constexpr auto AppAlphaVersion = TDESKTOP_ALPHA_VERSION;

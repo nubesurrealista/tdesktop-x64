@@ -819,19 +819,6 @@ void MainMenu::setupMenu() {
 			toggle);
 	}, _nightThemeToggle->lifetime());
 
-	_showPhoneToggle = addAction(
-		tr::lng_settings_show_phone_number(),
-		{ &st::menuIconPhone }
-	)->toggleOn(rpl::single(GetEnhancedBool("show_phone_number")));
-
-	_showPhoneToggle->toggledChanges(
-	) | rpl::filter([=](bool showPhone) {
-		return (showPhone != GetEnhancedBool("show_phone_number"));
-	}) | rpl::on_next([=](bool showPhone) {
-		SetEnhancedValue("show_phone_number", !GetEnhancedBool("show_phone_number"));
-		EnhancedSettings::Write();
-	}, _showPhoneToggle->lifetime());
-
 	_screenshotToggle = addAction(
 		tr::lng_settings_screen_shot_mode(),
 		{ &st::menuIconLock }
@@ -1075,8 +1062,8 @@ void MainMenu::setupSwipe() {
 		}
 	};
 
-	auto init = [=](int, Qt::LayoutDirection direction) {
-		if (direction != Qt::LeftToRight) {
+	auto init = [=](Ui::Controls::SwipeHandlerInitData data) {
+		if (data.direction != Qt::LeftToRight) {
 			return Ui::Controls::SwipeHandlerFinishData();
 		}
 		if (_emojiStatusPanel && _emojiStatusPanel->hasFocus()) {

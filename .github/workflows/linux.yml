@@ -50,11 +50,15 @@ jobs:
         with:
           tool-cache: true
       - name: Set up Docker Buildx.
+        id: setup-buildx
         uses: docker/setup-buildx-action@v4
       - name: Libraries cache.
+        id: cache-libs
         uses: actions/cache@v5
         with:
-          path: ${{ runner.temp }}/.buildx-cache
+          path: |
+            ${{ runner.temp }}/.buildx-cache
+            ${{ runner.temp }}/.mount-cache
           key: ${{ runner.OS }}-libs-${{ hashFiles('Telegram/build/docker/centos_env/**') }}
           restore-keys: ${{ runner.OS }}-libs-
       - name: Libraries.
@@ -80,6 +84,8 @@ jobs:
           else
             echo "ARTIFACT_NAME=Telegram" >> $GITHUB_ENV
           fi
+
+          mkdir -p ${{ runner.temp }}/.tdesktop-cache
 
           docker run --rm \
           -u $(id -u) \
