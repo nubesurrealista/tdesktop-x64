@@ -20,7 +20,7 @@ jobs:
         uses: pkgforge-dev/anylinux-setup-action@8872fabe63f9a00b35e25b2f46da62a05afc9a7d
       - name: Install Base System Dependencies
         run: |
-          pacman -Syu --noconfirm desktop-file-utils zsync xorg-server-xvfb hunspell hunspell-es_es enchant nspr nss aspell hspell fontconfig libx11 libxkbcommon webkit2gtk-4.1 geoclue gst-plugins-good gst-plugin-va
+          pacman -Syu --noconfirm desktop-file-utils zsync xorg-server-xvfb hunspell hunspell-es_es enchant nspr nss aspell hspell fontconfig libx11 libxkbcommon webkit2gtk-4.1 geoclue gst-plugins-good gst-plugin-va patchelf
 
           echo "es_ES.UTF-8 UTF-8" >> /etc/locale.gen
           locale-gen
