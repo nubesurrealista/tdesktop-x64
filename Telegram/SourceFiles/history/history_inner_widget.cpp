@@ -94,6 +94,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session_settings.h"
 #include "main/session/send_as_peers.h"
 #include "mainwidget.h"
+#include "iv/iv_rich_message_html_export.h"
 #include "menu/menu_item_download_files.h"
 #include "menu/menu_item_rate_transcribe.h"
 #include "menu/menu_item_rate_transcribe_session.h"
@@ -132,7 +133,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_changes.h"
 #include "dialogs/ui/dialogs_video_userpic.h"
 #include "styles/style_chat.h"
-#include "styles/style_chat_helpers.h"
 #include "styles/style_menu_icons.h"
 
 #include <QtGui/QClipboard>
@@ -705,7 +705,9 @@ void HistoryInner::setupSwipeReplyAndBack() {
 				int itembottom) {
 			if ((position.y() < itemtop)
 				|| (position.y() > itembottom)
-				|| !view->data()->isRegular()
+				|| (!view->data()->isRegular()
+					&& (!view->data()->isEphemeral()
+						|| view->data()->out()))
 				|| view->data()->isService()) {
 				return true;
 			}
@@ -757,7 +759,9 @@ void HistoryInner::setupSwipeReplyAndBack() {
 				int itembottom) {
 			if ((data.cursorPosition.y() < itemtop)
 				|| (data.cursorPosition.y() > itembottom)
-				|| !view->data()->isRegular()
+				|| (!view->data()->isRegular()
+					&& (!view->data()->isEphemeral()
+						|| view->data()->out()))
 				|| view->data()->showSimilarChannels()
 				|| view->data()->isService()) {
 				return true;
@@ -843,6 +847,16 @@ bool HistoryInner::hasSelectRestriction() const {
 void HistoryInner::messagesReceived(
 		not_null<PeerData*> peer,
 		const QVector<MTPMessage> &messages) {
+	if (_thanosController && !messages.isEmpty()) {
+		_thanosController->notePrependBaseline(historyHeight());
+	}
+	const auto anchor = _history->scrollTopItem
+		? _history->scrollTopItem
+		: (_migrated ? _migrated->scrollTopItem : nullptr);
+	if (anchor && !messages.isEmpty() && !_prependAnchorId) {
+		_prependAnchorId = anchor->data()->fullId();
+		_prependAnchorDateHeight = anchor->displayedDateHeight();
+	}
 	if (_history->peer == peer) {
 		_history->addOlderSlice(messages);
 		if (!messages.isEmpty()) {
@@ -921,7 +935,7 @@ void HistoryInner::enumerateItemsInHistory(History *history, int historytop, Met
 	}
 
 	auto collapseGapsTotal = 0;
-	for (const auto &gap : _collapseGaps) {
+	for (const auto &gap : collapseGaps()) {
 		collapseGapsTotal += gap.height;
 	}
 
@@ -938,7 +952,7 @@ void HistoryInner::enumerateItemsInHistory(History *history, int historytop, Met
 	auto blockbottom = blocktop + block->height();
 	auto itemIndex = BinarySearchBlocksOrItems<TopToBottom>(block->messages, searchEdge - blocktop);
 
-	const auto gapCount = int(_collapseGaps.size());
+	const auto gapCount = int(collapseGaps().size());
 	auto nextGapIndex = TopToBottom ? 0 : gapCount;
 	auto collapseShift = TopToBottom ? 0 : collapseGapsTotal;
 
@@ -949,14 +963,14 @@ void HistoryInner::enumerateItemsInHistory(History *history, int historytop, Met
 
 			if (TopToBottom) {
 				while (nextGapIndex < gapCount) {
-					const auto &gap = _collapseGaps[nextGapIndex];
+					const auto &gap = collapseGaps()[nextGapIndex];
 					if (logicalTop < gap.absY) break;
 					collapseShift += gap.height;
 					++nextGapIndex;
 				}
 			} else {
 				while (nextGapIndex > 0) {
-					const auto &gap = _collapseGaps[nextGapIndex - 1];
+					const auto &gap = collapseGaps()[nextGapIndex - 1];
 					if (logicalTop >= gap.absY) break;
 					collapseShift -= gap.height;
 					--nextGapIndex;
@@ -1137,8 +1151,12 @@ void HistoryInner::enumerateDates(Method method) {
 			if (lowestInOneDayItemBottom < 0) {
 				lowestInOneDayItemBottom = itembottom - view->marginBottom();
 			}
+			const auto collapsed = Ui::CollapseDateShift(
+				collapseGaps(),
+				itemtop);
+
 			// Attach date to the top of the visible area with the same margin as it has in service message.
-			int dateTop = qMax(itemtop, _visibleAreaTop) + st::msgServiceMargin.top();
+			int dateTop = qMax(itemtop - collapsed, _visibleAreaTop) + st::msgServiceMargin.top();
 
 			// Do not let the date go below the single-day messages pack bottom line.
 			int dateHeight = st::msgServicePadding.bottom() + st::msgServiceFont->height + st::msgServicePadding.top();
@@ -1417,6 +1435,10 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 	Painter p(this);
 	auto clip = e->rect();
 
+	if (_thanosController) {
+		_thanosController->clearRemovalHeight();
+	}
+
 	auto context = preparePaintContext(clip);
 	context.gestureHorizontal = _gestureHorizontal;
 	context.highlightPathCache = &_highlightPathCache;
@@ -1574,9 +1596,29 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 		auto iItem = (_curHistory == _migrated ? _curItem : (block->messages.size() - 1));
 		auto view = block->messages[iItem].get();
 		auto top = mtop + block->y() + view->y();
+
+		auto nextGapIndex = 0;
+		auto collapseShift = 0;
+		for (; nextGapIndex < int(collapseGaps().size()); ++nextGapIndex) {
+			const auto &gap = collapseGaps()[nextGapIndex];
+			if (top < gap.absY) break;
+			collapseShift += gap.height;
+		}
+		top += collapseShift;
+
 		context.translate(0, -top);
 		p.translate(0, top);
 		if (context.clip.y() < view->height()) while (top < drawToY) {
+			while (nextGapIndex < int(collapseGaps().size())) {
+				const auto &gap = collapseGaps()[nextGapIndex];
+				if (top - collapseShift < gap.absY) break;
+				top += gap.height;
+				collapseShift += gap.height;
+				context.translate(0, -gap.height);
+				p.translate(0, gap.height);
+				++nextGapIndex;
+			}
+
 			const auto height = view->height();
 			context.reactionInfo
 				= _reactionsManager->currentReactionPaintInfo();
@@ -1619,8 +1661,8 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 
 		auto nextGapIndex = 0;
 		auto collapseShift = 0;
-		for (; nextGapIndex < int(_collapseGaps.size()); ++nextGapIndex) {
-			const auto &gap = _collapseGaps[nextGapIndex];
+		for (; nextGapIndex < int(collapseGaps().size()); ++nextGapIndex) {
+			const auto &gap = collapseGaps()[nextGapIndex];
 			if (top < gap.absY) break;
 			collapseShift += gap.height;
 		}
@@ -1632,8 +1674,8 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 		p.translate(0, top);
 		const auto &sendingAnimation = _controller->sendingAnimation();
 		while (top < drawToY) {
-			while (nextGapIndex < int(_collapseGaps.size())) {
-				const auto &gap = _collapseGaps[nextGapIndex];
+			while (nextGapIndex < int(collapseGaps().size())) {
+				const auto &gap = collapseGaps()[nextGapIndex];
 				if (top - collapseShift < gap.absY) break;
 				top += gap.height;
 				collapseShift += gap.height;
@@ -1903,7 +1945,9 @@ void HistoryInner::onTouchScrollTimer() {
 		|| _touchScrollState == Ui::TouchScrollState::Acceleration) {
 		int32 elapsed = int32(nowTime - _touchTime);
 		QPoint delta = _touchSpeed * elapsed / 1000;
-		const auto consumedHorizontal = consumeScrollAction(delta);
+		const auto consumedHorizontal = consumeScrollAction(
+			delta,
+			Qt::NoScrollPhase);
 		if (consumedHorizontal) {
 			_horizontalScrollLocked = true;
 		}
@@ -2138,7 +2182,7 @@ void HistoryInner::mouseActionUpdate(const QPoint &screenPos) {
 
 void HistoryInner::touchScrollUpdated(const QPoint &screenPos) {
 	_touchPos = screenPos;
-	if (consumeScrollAction(_touchPos - _touchPrevPos)) {
+	if (consumeScrollAction(_touchPos - _touchPrevPos, Qt::NoScrollPhase)) {
 		_horizontalScrollLocked = true;
 	} else if (!_horizontalScrollLocked) {
 		_widget->touchScroll(_touchPos - _touchPrevPos);
@@ -3425,6 +3469,11 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					controller,
 					selectedItemsForExport(),
 					this);
+				Iv::AddSaveRichMessageHtmlAction(
+					_menu,
+					controller,
+					selectedItemsForExport(),
+					this);
 			}
 			_menu->addAction(tr::lng_context_clear_selection(tr::now), [=] {
 				_widget->clearSelected();
@@ -3844,6 +3893,11 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 			}
 			if (selectedState.count > 0 && !hasCopyRestrictionForSelected()) {
 				Menu::AddDownloadFilesAction(
+					_menu,
+					controller,
+					selectedItemsForExport(),
+					this);
+				Iv::AddSaveRichMessageHtmlAction(
 					_menu,
 					controller,
 					selectedItemsForExport(),
@@ -4293,25 +4347,28 @@ TextForMimeData HistoryInner::getSelectedText() const {
 	}
 
 	const auto richContext = (selected.size() > 1);
-	struct Part {
-		not_null<HistoryItem*> item;
-		const Data::Group *group = nullptr;
-	};
-
 	auto groups = base::flat_set<not_null<const Data::Group*>>();
-	auto texts = base::flat_map<Data::MessagePosition, Part>();
+	auto texts = base::flat_map<
+		Data::MessagePosition,
+		HistorySelectedTextEntry>();
 
 	const auto addItem = [&](not_null<HistoryItem*> item) {
-		texts.emplace(item->position(), Part{ .item = item });
+		texts.emplace(
+			item->position(),
+			HistorySelectedTextEntry{
+				.item = item,
+			});
 	};
 	const auto addGroup = [&](not_null<const Data::Group*> group) {
 		Expects(!group->items.empty());
 
 		const auto item = group->items.back();
-		texts.emplace(item->position(), Part{
-			.item = item,
-			.group = group.get(),
-		});
+		texts.emplace(
+			item->position(),
+			HistorySelectedTextEntry{
+				.item = item,
+				.group = group.get(),
+			});
 	};
 
 	for (const auto &item : selected) {
@@ -4336,31 +4393,12 @@ TextForMimeData HistoryInner::getSelectedText() const {
 		}
 		return HistoryItemText(part.item);
 	}
-	auto result = TextForMimeData();
-	const auto sep = u"\n"_q;
-	for (auto i = texts.begin(), e = texts.end(); i != e;) {
-		const auto &part = i->second;
-		auto body = TextForMimeData();
-		if (part.group) {
-			const auto group = not_null<const Data::Group*>{ part.group };
-			body = richContext
-				? HistoryGroupTextForSelectedCopy(group)
-				: HistoryGroupText(group);
-		} else {
-			body = richContext
-				? HistoryItemTextForSelectedCopy(part.item)
-				: HistoryItemText(part.item);
-		}
-		auto wrapped = HistorySelectedItemWrappedText(
-			part.item,
-			std::move(body),
-			richContext);
-		result.append(std::move(wrapped));
-		if (++i != e) {
-			result.append(sep);
-		}
+	auto entries = std::vector<HistorySelectedTextEntry>();
+	entries.reserve(texts.size());
+	for (const auto &entry : texts) {
+		entries.push_back(entry.second);
 	}
-	return result;
+	return HistorySelectedItemsText(entries, richContext);
 }
 
 void HistoryInner::keyPressEvent(QKeyEvent *e) {
@@ -4632,6 +4670,9 @@ void HistoryInner::checkActivation() {
 }
 
 void HistoryInner::recountHistoryGeometry(bool initial) {
+	if (_thanosController) {
+		_thanosController->clearRemovalHeight();
+	}
 	_contentWidth = _scroll->width();
 
 	if (_history->hasPendingResizedItems()
@@ -4670,6 +4711,25 @@ void HistoryInner::recountHistoryGeometry(bool initial) {
 				}
 			}
 		}
+	}
+
+	if (_prependAnchorId) {
+		const auto id = base::take(_prependAnchorId);
+		const auto history = _history->scrollTopItem
+			? _history.get()
+			: ((_migrated && _migrated->scrollTopItem) ? _migrated : nullptr);
+		const auto anchor = history ? history->scrollTopItem : nullptr;
+		if (anchor && anchor->data()->fullId() == id) {
+			const auto delta = anchor->displayedDateHeight()
+				- _prependAnchorDateHeight;
+			if (delta) {
+				history->scrollTopOffset += delta;
+			}
+		}
+	}
+
+	if (_thanosController) {
+		_thanosController->applyPrependBaseline(historyHeight());
 	}
 
 	if (const auto view = _aboutView ? _aboutView->view() : nullptr) {
@@ -4891,12 +4951,15 @@ void HistoryInner::setItemsRevealHeight(int revealHeight) {
 	_revealHeight = revealHeight;
 }
 
-void HistoryInner::setCollapseGaps(std::vector<CollapseGap> gaps) {
-	if (_collapseGaps != gaps) {
-		_collapseGaps = std::move(gaps);
-		updateSize();
-	}
+const std::vector<Ui::CollapseGap> &HistoryInner::collapseGaps() const {
+	static const auto kNone = std::vector<Ui::CollapseGap>();
+	return _thanosController ? _thanosController->renderGaps() : kNone;
 }
+
+void HistoryInner::collapseGapsUpdated() {
+	updateSize();
+}
+
 
 void HistoryInner::changeItemsRevealHeight(int revealHeight) {
 	if (_revealHeight == revealHeight) {
@@ -4917,9 +4980,14 @@ void HistoryInner::setPullBottomInset(int inset) {
 void HistoryInner::updateSize() {
 	const auto visibleHeight = _scroll->height();
 	auto collapseGapTotal = 0;
-	for (const auto &gap : _collapseGaps) {
+	for (const auto &gap : collapseGaps()) {
 		collapseGapTotal += gap.height;
 	}
+	collapseGapTotal = std::max(
+		collapseGapTotal - (_thanosController
+			? _thanosController->removalHeight()
+			: 0),
+		0);
 	const auto itemsHeight = historyHeight() - _revealHeight + collapseGapTotal;
 	const auto aboutAboveHistory = _aboutView && _aboutView->aboveHistory();
 	const auto aboutBelowHistory = _aboutView && !aboutAboveHistory;
@@ -4950,6 +5018,10 @@ void HistoryInner::updateSize() {
 	}
 
 	if (_historyMarginTop != newHistoryMarginTop) {
+		if (_thanosController) {
+			_thanosController->shiftGaps(
+				newHistoryMarginTop - _historyMarginTop);
+		}
 		_historyMarginTop = newHistoryMarginTop;
 	}
 	if (_historyMarginBottom != newHistoryMarginBottom) {
@@ -4968,6 +5040,10 @@ void HistoryInner::updateSize() {
 		}
 	} else {
 		update();
+	}
+
+	if (_thanosController && !_pullBottomInset) {
+		_thanosController->pinScroll();
 	}
 }
 
@@ -5030,9 +5106,7 @@ void HistoryInner::setupThanosEffect() {
 			.scrollToY = [=](int y) {
 				_widget->synteticScrollToY(y);
 			},
-			.setCollapseGaps = [=](std::vector<CollapseGap> gaps) {
-				setCollapseGaps(std::move(gaps));
-			},
+			.collapseGapsUpdated = [=] { collapseGapsUpdated(); },
 		},
 		lifetime());
 
@@ -5075,7 +5149,7 @@ bool HistoryInner::focusNextPrevChild(bool next) {
 
 void HistoryInner::adjustCurrent(int32 y) const {
 	auto gapShift = 0;
-	for (const auto &gap : _collapseGaps) {
+	for (const auto &gap : collapseGaps()) {
 		if (y < gap.absY + gapShift) {
 			break;
 		}
@@ -6343,8 +6417,10 @@ void HistoryInner::playPauseFocusedMedia() {
 				|| document->isSong()
 				|| document->isAudioFile()
 				|| document->isVideoMessage()) {
-				::Media::Player::instance()->playPause(
-					{ document, item->fullId() });
+				// Go the same way as a mouse click on the media, so that
+				// the playlist gets the same context (e.g. is not scoped
+				// to a single topic when the whole forum is shown).
+				elementOpenDocument(document, item->fullId(), false);
 			}
 		}
 	}
@@ -6615,15 +6691,20 @@ void HistoryInner::onParentGeometryChanged() {
 	}
 }
 
-bool HistoryInner::consumeScrollAction(QPoint delta) {
+bool HistoryInner::consumeScrollAction(QPoint delta, Qt::ScrollPhase phase) {
 	const auto horizontal = (std::abs(delta.x()) > std::abs(delta.y()));
-	if (!horizontal || !_acceptsHorizontalScroll || !Element::Moused()) {
+	if (((phase == Qt::NoScrollPhase) && !horizontal)
+		|| !_acceptsHorizontalScroll
+		|| !Element::Moused()) {
 		return false;
 	}
 	const auto position = mapPointToItem(
 		mapFromGlobal(_mousePosition),
 		Element::Moused());
-	return Element::Moused()->consumeHorizontalScroll(position, delta.x());
+	return Element::Moused()->consumeHorizontalScroll(
+		position,
+		delta.x(),
+		phase);
 }
 
 Fn<HistoryView::ElementDelegate*()> HistoryInner::elementDelegateFactory(
