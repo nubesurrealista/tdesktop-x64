@@ -1,5 +1,5 @@
----
 name: Flatpak Packager
+
 on:
   workflow_dispatch: null
   workflow_run:
@@ -7,6 +7,7 @@ on:
       - Linux Build
     types:
       - completed
+
 jobs:
   flatpak:
     name: Package 64Gram
@@ -18,20 +19,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
       - name: Checkout Repository Assets
         uses: actions/checkout@v6
+
       - name: Download Latest Binary Artifact
         uses: dawidd6/action-download-artifact@v20
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          repo: nubesurrealista/tdesktop-x64
+          repo: ${{ github.repository }}
           workflow: linux.yml
           workflow_conclusion: success
           name: Telegram-Desktop
           path: bin_archive
+
       - name: Prepare Assets
         run: |
-          cat <<EOT > com.nube.Telegram.desktop
+          cat <<EOT > org.frknkrc44.Telegram.desktop
           [Desktop Entry]
           Name=64Gram
           GenericName=Telegram Desktop fork
@@ -39,19 +43,20 @@ jobs:
           Comment=64Gram Desktop Messenger
           Comment[es]=Fork de TG Desktop
           Exec=Telegram -- %u
-          Icon=com.nube.Telegram
+          Icon=org.frknkrc44.Telegram
           Terminal=false
           Type=Application
           Categories=Network;InstantMessaging;
           StartupWMClass=Telegram
           MimeType=x-scheme-handler/tg;
           EOT
+
       - name: Create Flatpak Manifest
         run: |
-          cat <<EOF > com.nube.Telegram.yml
-          app-id: com.nube.Telegram
+          cat <<EOF > org.frknkrc44.Telegram.yml
+          app-id: org.frknkrc44.Telegram
           runtime: org.gnome.Platform
-          runtime-version: '49'
+          runtime-version: '48'
           sdk: org.gnome.Sdk
           command: Telegram
           finish-args:
@@ -75,8 +80,8 @@ jobs:
                 - mkdir -p /app/bin /app/share/applications /app/share/icons/hicolor/512x512/apps/
                 - cp Telegram_bin /app/bin/Telegram
                 - chmod +x /app/bin/Telegram
-                - cp app_icon.png /app/share/icons/hicolor/512x512/apps/com.nube.Telegram.png
-                - cp com.nube.Telegram.desktop /app/share/applications/com.nube.Telegram.desktop
+                - cp app_icon.png /app/share/icons/hicolor/512x512/apps/org.frknkrc44.Telegram.png
+                - cp org.frknkrc44.Telegram.desktop /app/share/applications/org.frknkrc44.Telegram.desktop
               sources:
                 - type: file
                   path: bin_archive/Telegram
@@ -85,14 +90,16 @@ jobs:
                   path: Telegram/Resources/art/icon512.png
                   dest-filename: app_icon.png
                 - type: file
-                  path: com.nube.Telegram.desktop
+                  path: org.frknkrc44.Telegram.desktop
           EOF
+
       - name: Build Flatpak Bundle
         run: |
-          flatpak-builder --user --install-deps-from=flathub --disable-rofiles-fuse --force-clean --repo=repo build_dir com.nube.Telegram.yml
-          flatpak build-bundle repo 64Gram.flatpak com.nube.Telegram
-      - name: Upload Flatpak
+          flatpak-builder --user --install-deps-from=flathub --disable-rofiles-fuse --force-clean --repo=repo build_dir org.frknkrc44.Telegram.yml
+          flatpak build-bundle repo 64Gram-fork.flatpak org.frknkrc44.Telegram
+
+      - name: Upload Final Flatpak
         uses: actions/upload-artifact@v7
         with:
           name: 64Gram-Flatpak
-          path: 64Gram.flatpak
+          path: 64Gram-fork.flatpak
