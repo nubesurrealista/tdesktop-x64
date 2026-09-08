@@ -747,7 +747,8 @@ base::unique_qptr<Ui::SideBarButton> FiltersMenu::prepareButton(
 				_drag.timer.cancel();
 			}
 		}, raw->lifetime());
-		
+	}
+	
 	// -1 means the "Edit" button
 	if (id == -1 && GetEnhancedBool("replace_edit_button")) {
 		raw->setAcceptDrops(true);
